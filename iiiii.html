@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام إدارة المبيعات والعهدة المتكامل</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    @media print {
+      body * { visibility: hidden; }
+      #reportModal, #reportModal * { visibility: visible; }
+      #reportModal { position: absolute; left: 0; top: 0; width: 100%; background: white; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 min-h-screen">
+
+  <!-- شاشة تسجيل الدخول -->
+  <div id="loginScreen" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md p-6 rounded-3xl shadow-2xl space-y-6">
+      <div class="text-center space-y-2">
+        <div class="bg-indigo-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+          <i class="fa-solid fa-lock text-2xl"></i>
+        </div>
+        <h2 class="text-xl font-black text-slate-800">تسجيل الدخول للنظام</h2>
+        <p class="text-xs text-slate-500">أدخل البيانات المسجلة في النظام</p>
+      </div>
+
+      <form onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">البريد الإلكتروني</label>
+          <input type="email" id="loginEmail" placeholder="user@domain.com" required class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">كلمة السر</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" required class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <button type="submit" id="btnLoginSubmit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2">
+          <span>تسجيل الدخول</span>
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- الشريط العلوي -->
+  <nav class="bg-indigo-900 text-white p-4 shadow-xl sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="bg-amber-400 p-2 rounded-xl text-indigo-950">
+          <i class="fa-solid fa-chart-line text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-black text-lg leading-tight">منظومة المبيعات والعهدة</h1>
+          <p id="userRoleBadge" class="text-[10px] text-amber-300 font-bold">جاري التحقق...</p>
+        </div>
+      </div>
+      <button onclick="handleLogout()" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-md flex items-center gap-2">
+        <span>خروج</span>
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- الحاوية الرئيسية -->
+  <main class="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+
+    <!-- لوحة تحكم الإدارة، المشرف والمدير المباشر -->
+    <div id="adminPanel" class="hidden space-y-6">
+      
+      <!-- الإحصائيات العامة -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex justify-between items-center">
+          <div>
+            <p id="statTotalDelegatesLabel" class="text-xs text-slate-500 font-bold">إجمالي المناديب</p>
+            <h3 id="statTotalDelegates" class="text-2xl font-black text-indigo-900 mt-1">0</h3>
+          </div>
+          <div class="bg-indigo-50 p-3 rounded-2xl text-indigo-600"><i class="fa-solid fa-users text-2xl"></i></div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex justify-between items-center">
+          <div>
+            <p class="text-xs text-slate-500 font-bold">الشرائح الموزعة</p>
+            <h3 id="statTotalSims" class="text-2xl font-black text-amber-600 mt-1">0 شريحة</h3>
+          </div>
+          <div class="bg-amber-50 p-3 rounded-2xl text-amber-600"><i class="fa-solid fa-sim-card text-2xl"></i></div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex justify-between items-center">
+          <div>
+            <p class="text-xs text-slate-500 font-bold">إجمالي الأرصدة</p>
+            <h3 id="statTotalBalances" class="text-2xl font-black text-emerald-600 mt-1">0.00 ر.س</h3>
+          </div>
+          <div class="bg-emerald-50 p-3 rounded-2xl text-emerald-600"><i class="fa-solid fa-wallet text-2xl"></i></div>
+        </div>
+      </div>
+
+      <!-- تصدير وتقارير -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 flex flex-wrap gap-3 items-center justify-between">
+        <div>
+          <h3 class="font-bold text-sm text-slate-800">تصدير تقارير وشيتات العمليات</h3>
+          <p class="text-xs text-slate-500">تحميل ملفات Excel لسجلات المناديب</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="downloadAdminLogs('financial')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2">
+            <i class="fa-solid fa-file-excel"></i> تحميل سجل العمليات المالية
+          </button>
+          <button onclick="downloadAdminLogs('operational')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2">
+            <i class="fa-solid fa-file-excel"></i> تحميل سجل العمليات التشغيلية
+          </button>
+        </div>
+      </div>
+
+      <!-- قسم الطلبات المعلقة (يظهر للإدارة والـ HR لاعتماد طلبات المدير المباشر) -->
+      <div id="pendingRequestsSection" class="bg-amber-50 p-6 rounded-2xl shadow-sm border border-amber-200 hidden">
+        <h3 class="font-bold text-sm text-amber-900 border-b border-amber-200 pb-3 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left text-amber-600"></i> الطلبات الواردة من المدير المباشر (تحتاج موافقة واعتماد)
+        </h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-right text-xs bg-white rounded-xl overflow-hidden shadow-sm">
+            <thead class="bg-amber-100 text-amber-900 font-bold border-b">
+              <tr>
+                <th class="p-3">نوع الطلب</th>
+                <th class="p-3">المرسل (المدير)</th>
+                <th class="p-3">تفاصيل البيانات المطلوبة</th>
+                <th class="p-3 text-center">الإجراء</th>
+              </tr>
+            </thead>
+            <tbody id="pendingRequestsTbody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- قسم إنشاء الحسابات (خاص بالـ Admin/HR أو إرسال طلب للمدير) -->
+      <div id="createUserSection" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+        <h3 id="createUserTitle" class="font-bold text-sm text-slate-800 border-b pb-3 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-user-plus text-indigo-600"></i> إضافة حساب جديد وتحديد الصلاحيات والمدير المباشر
+        </h3>
+        <form onsubmit="handleCreateUser(event)" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">الاسم الكامل</label>
+            <input type="text" id="newUserName" required placeholder="أحمد علي" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">رقم الجوال</label>
+            <input type="text" id="newUserPhone" required placeholder="05xxxxxxxx" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">البريد الإلكتروني</label>
+            <input type="email" id="newUserEmail" required placeholder="user@domain.com" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">كلمة السر</label>
+            <input type="password" id="newUserPassword" required placeholder="••••••••" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">العهدة الابتدائية</label>
+            <input type="number" id="newUserSimsCustody" min="0" value="0" required placeholder="0" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">المدير المباشر</label>
+            <select id="newUserManager" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 outline-none">
+              <option value="">-- بدون مدير مباشر --</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">نوع الصلاحية</label>
+            <select id="newUserRole" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-indigo-900 outline-none">
+              <option value="delegate">مندوب مبيعات</option>
+              <option value="manager">مدير مباشر</option>
+              <option value="admin">مشرف / إدارة عامة</option>
+              <option value="hr">موارد بشرية (HR)</option>
+            </select>
+          </div>
+          <div class="col-span-full flex justify-end">
+            <button type="submit" id="createUserBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition shadow-md">
+              حفظ الحساب الجديد
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- تسجيل عملية البيع -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+        <h3 id="saleTitle" class="font-bold text-sm text-slate-800 border-b pb-3 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-cart-shopping text-emerald-600"></i> تسجيل عملية بيع جديدة
+        </h3>
+        <form onsubmit="handleAdminRecordSale(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">اختر المندوب المنفذ للبيع</label>
+            <select id="adminSaleDelegateId" required class="delegate-select w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              <option value="">-- اختر المندوب --</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">عدد الشرائح المباعة</label>
+            <input type="number" id="adminSaleSimsCount" min="1" required placeholder="مثال: 5" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">المبلغ المالي المضاف (ر.س)</label>
+            <input type="number" id="adminSaleAmount" step="0.01" min="0" required placeholder="0.00" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+          </div>
+          <div class="flex items-end">
+            <button type="submit" id="saleBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md">
+              تسجيل عملية البيع
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- إدارات الأرصدة، العهدة، التعديل والتارقت -->
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- إدارة الرصيد -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+          <h3 id="balanceTitle" class="font-bold text-sm text-slate-800 border-b pb-3 flex items-center gap-2">
+            <i class="fa-solid fa-wallet text-emerald-600"></i> إدارة الرصيد المالي
+          </h3>
+          <form onsubmit="handleManageBalance(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">اختر المندوب</label>
+              <select id="balanceSelectDel" required class="delegate-select w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+                <option value="">-- اختر المندوب --</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">إضافة رصيد (+)</label>
+              <input type="number" id="addBalance" step="0.01" placeholder="0.00" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">خصم رصيد (-)</label>
+              <input type="number" id="deductBalance" step="0.01" placeholder="0.00" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+            </div>
+            <button type="submit" id="balanceBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition">
+              تحديث الرصيد
+            </button>
+          </form>
+        </div>
+
+        <!-- إدارة عهدة الشرائح -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+          <h3 id="custodyTitle" class="font-bold text-sm text-slate-800 border-b pb-3 flex items-center gap-2">
+            <i class="fa-solid fa-sim-card text-amber-600"></i> إدارة عهدة الشرائح
+          </h3>
+          <form onsubmit="handleManageCustody(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">اختر المندوب</label>
+              <select id="custodySelectDel" required class="delegate-select w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+                <option value="">-- اختر المندوب --</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">إضافة شرائح للعهدة (+)</label>
+              <input type="number" id="addCustodySims" min="0" placeholder="عدد الشرائح" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">سحب/خصم شرائح (-)</label>
+              <input type="number" id="deductCustodySims" min="0" placeholder="عدد الشرائح" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+            </div>
+            <button type="submit" id="custodyBtn" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl text-xs transition">
+              تحديث عهدة الشرائح
+            </button>
+          </form>
+        </div>
+
+        <!-- تعديل البيانات وحذف المندوب -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+          <h3 class="font-bold text-sm text-slate-800 border-b pb-3 flex items-center gap-2">
+            <i class="fa-solid fa-user-gear text-indigo-600"></i> تعديل البيانات والحذف
+          </h3>
+          <form onsubmit="handleUpdateDelegateData(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">اختر المندوب</label>
+              <select id="editSelectDel" onchange="fillEditInputs()" required class="delegate-select w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+                <option value="">-- اختر المندوب --</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">الاسم المعدل</label>
+              <input type="text" id="editDelName" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">رقم الجوال</label>
+              <input type="text" id="editDelPhone" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">البريد الإلكتروني</label>
+              <input type="email" id="editDelEmail" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">كلمة السر الجديدة</label>
+              <input type="password" id="editDelPassword" placeholder="اتركه فارغاً للتثبيت" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">المدير المباشر</label>
+              <select id="editDelManager" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 outline-none">
+                <option value="">-- بدون مدير مباشر --</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">ملف إخلاء الطرف (عند الحذف)</label>
+              <input type="file" id="clearanceFile" accept="image/*,.pdf" class="w-full p-1.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+            </div>
+            <div class="flex gap-2">
+              <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition">
+                تعديل البيانات
+              </button>
+              <button type="button" onclick="deleteDelegateWithClearance()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-2.5 rounded-xl text-xs transition">
+                حذف
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- تحديد التارقت -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+          <h3 class="font-bold text-sm text-slate-800 border-b pb-3 flex items-center gap-2">
+            <i class="fa-solid fa-bullseye text-amber-500"></i> تحديد التارقت والتواريخ
+          </h3>
+          <form onsubmit="handleSetTarget(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">اختر المندوب</label>
+              <select id="targetSelectDel" onchange="fillTargetInputs()" required class="delegate-select w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+                <option value="">-- اختر المندوب --</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">الهدف المطلوب (شرائح)</label>
+              <input type="number" id="targetAmount" required placeholder="150" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">تاريخ البداية</label>
+                <input type="date" id="targetStartDate" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">تاريخ النهاية</label>
+                <input type="date" id="targetEndDate" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              </div>
+            </div>
+            <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs transition">
+              حفظ التارقت
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- قائمة المناديب التابعين -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 id="tableTitleHeader" class="font-bold text-sm text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-users-viewfinder text-indigo-600"></i> قائمة المناديب
+          </h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-right text-xs">
+            <thead class="bg-slate-50 text-slate-500 font-bold border-b">
+              <tr>
+                <th class="p-3">اسم المندوب</th>
+                <th class="p-3">رقم الجوال</th>
+                <th class="p-3">البريد الإلكتروني</th>
+                <th class="p-3">الصلاحية</th>
+                <th class="p-3">المدير المباشر</th>
+                <th class="p-3">عهدة الشرائح</th>
+                <th class="p-3">الشرائح المباعة</th>
+                <th class="p-3">رصيد المحفظة</th>
+                <th class="p-3">الهدف (Target)</th>
+                <th class="p-3">نسبة التحقيق</th>
+                <th class="p-3 text-center">تصدير</th>
+              </tr>
+            </thead>
+            <tbody id="delegatesListTbody" class="divide-y divide-slate-100 font-medium"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- لوحة المندوب الشخصية -->
+    <div id="delegatePanel" class="hidden space-y-6">
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 flex flex-wrap justify-between items-center gap-4">
+        <div>
+          <h2 id="delegateWelcome" class="text-lg font-black text-indigo-900 mb-1">أهلاً بك</h2>
+          <p id="delegateManagerDisplay" class="text-xs text-indigo-600 font-bold mb-1">المدير المباشر: --</p>
+          <p class="text-xs text-slate-500">لوحة المتابعة الخاصة ببياناتك ومبيعاتك وعسرتك ومحفظتك.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="downloadDelegateLogs('financial')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5">
+            <i class="fa-solid fa-file-excel"></i> تحميل سجل مالي
+          </button>
+          <button onclick="downloadDelegateLogs('operational')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5">
+            <i class="fa-solid fa-file-excel"></i> تحميل سجل تشغيلي
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-indigo-900 text-white p-6 rounded-2xl shadow-sm">
+          <p class="text-xs text-indigo-300 font-bold">عهدة الشرائح الحالية</p>
+          <h3 id="delSimsCustodyDisplay" class="text-3xl font-black mt-2">0 <span class="text-xs font-normal">شريحة</span></h3>
+        </div>
+        <div class="bg-emerald-800 text-white p-6 rounded-2xl shadow-sm">
+          <p class="text-xs text-emerald-200 font-bold">رصيد المحفظة المتاح</p>
+          <h3 id="delWalletBalance" class="text-3xl font-black mt-2">0.00 <span class="text-xs font-normal">ر.س</span></h3>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+          <p class="text-xs text-slate-500 font-bold">نسبة إنجاز الهدف (Target)</p>
+          <h3 id="delTargetProgressText" class="text-2xl font-black text-indigo-600 mt-2">0%</h3>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+          <h3 class="font-bold text-base text-slate-800 border-b pb-3 flex items-center gap-2">
+            <i class="fa-solid fa-paper-plane text-indigo-600"></i> تحويل رصيد إلى مندوب آخر
+          </h3>
+          <form onsubmit="handleTransferBalance(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">البريد الإلكتروني للمندوب المستلم</label>
+              <input type="email" id="transferRecipientEmail" required placeholder="recipient@domain.com" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">المبلغ المراد تحويله (ر.س)</label>
+              <input type="number" id="transferAmount" step="0.01" min="0.01" required placeholder="0.00" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+            </div>
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl text-xs transition shadow-md">
+              تأكيد التحويل
+            </button>
+          </form>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+          <h3 class="font-bold text-base text-slate-800 border-b pb-3 flex items-center gap-2">
+            <i class="fa-solid fa-hand-holding-dollar text-emerald-600"></i> طلب سحب أموال من المحفظة
+          </h3>
+          <form onsubmit="handleWithdrawalRequest(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">المبلغ المطلوب (ر.س)</label>
+              <input type="number" id="withdrawAmount" step="0.01" required placeholder="أدخل المبلغ" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">طريقة السحب</label>
+              <select id="withdrawMethod" required class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+                <option value="">-- اختر طريقة السحب --</option>
+                <option value="تحويل بنكي">تحويل بنكي</option>
+                <option value="STC Pay">STC Pay</option>
+                <option value="نقداً">نقداً</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">تاريخ الطلب</label>
+              <input type="date" id="withdrawDate" required class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">سبب السحب</label>
+              <textarea id="withdrawReason" rows="2" required placeholder="اكتب سبب الطلب..." class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none"></textarea>
+            </div>
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-xs transition shadow-md">
+              إرسال طلب السحب
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+          <div class="flex justify-between items-center border-b pb-3">
+            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-receipt text-emerald-600"></i> آخر العمليات المالية
+            </h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+              <thead class="bg-slate-50 text-slate-500 font-bold border-b">
+                <tr>
+                  <th class="p-2">النوع</th>
+                  <th class="p-2">المبلغ</th>
+                  <th class="p-2">التفاصيل</th>
+                  <th class="p-2">التاريخ</th>
+                </tr>
+              </thead>
+              <tbody id="delFinancialLogsTbody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+          <div class="flex justify-between items-center border-b pb-3">
+            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-list-check text-indigo-600"></i> آخر العمليات التشغيلية
+            </h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+              <thead class="bg-slate-50 text-slate-500 font-bold border-b">
+                <tr>
+                  <th class="p-2">الحدث</th>
+                  <th class="p-2">التفاصيل</th>
+                  <th class="p-2">التاريخ</th>
+                </tr>
+              </thead>
+              <tbody id="delOperationalLogsTbody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- نافذة التقرير -->
+  <div id="reportModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white w-full max-w-4xl p-6 rounded-3xl shadow-2xl space-y-6 my-8 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3 no-print sticky top-0 bg-white z-10 pt-2">
+        <h3 class="font-black text-base text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-id-card text-indigo-600"></i> التقرير الشامل وسجل العمليات الكامل للمندوب
+        </h3>
+        <div class="flex gap-2">
+          <button onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition">طباعة التقرير</button>
+          <button onclick="closeReportModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold transition">إغلاق</button>
+        </div>
+      </div>
+      <div id="reportContent" class="space-y-6"></div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://twfyoonssfwmfmyejseh.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3Znlvb25zc2Z3bWZteWVqc2VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3Mzg5ODYsImV4cCI6MjEwNDMxNDk4Nn0.Ik8EcH5sICt-x1IwtNfS1pgXFHU6tY4CCL9hDXZDwfA";
+    
+    const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+    let globalDelegatesList = [];
+    let currentUser = null;
+
+    if (document.getElementById('withdrawDate')) {
+      document.getElementById('withdrawDate').valueAsDate = new Date();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedUser = localStorage.getItem('currentUser');
+      if (savedUser) {
+        try {
+          currentUser = JSON.parse(savedUser);
+          initAppWithUser(currentUser);
+        } catch (e) {
+          localStorage.removeItem('currentUser');
+        }
+      }
+
+      const newManagerSelect = document.getElementById('newUserManager');
+      if (newManagerSelect) {
+        newManagerSelect.addEventListener('change', function() {
+          if (this.value) {
+            const selectedDelegate = globalDelegatesList.find(d => String(d.id) === String(this.value));
+            if (selectedDelegate) {
+              const roleSelect = document.getElementById('newUserRole');
+              if (roleSelect) roleSelect.value = 'manager';
+            }
+          }
+        });
+      }
+    });
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      const btn = document.getElementById('btnLoginSubmit');
+      
+      if (!email || !password) {
+        alert("يرجى إدخال البريد الإلكتروني وكلمة المرور");
+        return;
+      }
+
+      btn.innerText = "جاري التحقق...";
+      btn.disabled = true;
+
+      try {
+        if (!supabaseClient) throw new Error("مكتبة Supabase غير متصلة");
+
+        const { data, error } = await supabaseClient
+          .from('delegates')
+          .select('*')
+          .eq('email', email)
+          .single();
+
+        if (error || !data) {
+          alert("البريد الإلكتروني غير مسجل في النظام");
+          resetLoginBtn(btn);
+          return;
+        }
+
+        if (data.password !== password) {
+          alert("كلمة المرور غير صحيحة");
+          resetLoginBtn(btn);
+          return;
+        }
+
+        currentUser = data;
+        localStorage.setItem('currentUser', JSON.stringify(data));
+        initAppWithUser(data);
+
+      } catch (err) {
+        console.error(err);
+        alert("حدث خطأ أثناء الاتصال بقاعدة البيانات");
+        resetLoginBtn(btn);
+      }
+    }
+
+    function resetLoginBtn(btn) {
+      btn.innerHTML = '<span>تسجيل الدخول</span><i class="fa-solid fa-arrow-left"></i>';
+      btn.disabled = false;
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('currentUser');
+      currentUser = null;
+      location.reload();
+    }
+
+    async function initAppWithUser(user) {
+      document.getElementById('loginScreen').classList.add('hidden');
+      
+      let roleText = "مندوب مبيعات";
+      if (user.role === 'admin') roleText = "مشرف / إدارة عامة";
+      else if (user.role === 'manager') roleText = "مدير مباشر";
+      else if (user.role === 'hr') roleText = "موارد بشرية (HR)";
+
+      document.getElementById('userRoleBadge').innerText = roleText;
+
+      if (user.role === 'admin' || user.role === 'manager' || user.role === 'hr') {
+        document.getElementById('adminPanel').classList.remove('hidden');
+        document.getElementById('delegatePanel').classList.add('hidden');
+        
+        if (user.role === 'manager') {
+          // المدير المباشر يمكنه الطلب ولكن تظهر الأزرار بصيغة "إرسال طلب للإدارة"
+          document.getElementById('statTotalDelegatesLabel').innerText = "إجمالي مناديب فريقي";
+          document.getElementById('tableTitleHeader').innerHTML = `<i class="fa-solid fa-users-viewfinder text-indigo-600"></i> قائمة مناديب فريقي التابعين لي`;
+          
+          document.getElementById('createUserTitle').innerHTML = `<i class="fa-solid fa-user-plus text-indigo-600"></i> إرسال طلب إضافة مندوب جديد (يحتاج اعتماد الإدارة)`;
+          document.getElementById('createUserBtn').innerText = "إرسال طلب إضافة مندوب";
+
+          document.getElementById('saleTitle').innerHTML = `<i class="fa-solid fa-cart-shopping text-emerald-600"></i> إرسال طلب تسجيل مبيعات (يحتاج اعتماد الإدارة)`;
+          document.getElementById('saleBtn').innerText = "إرسال طلب مبيعات";
+
+          document.getElementById('balanceTitle').innerHTML = `<i class="fa-solid fa-wallet text-emerald-600"></i> إرسال طلب تعديل رصيد (يحتاج اعتماد الإدارة)`;
+          document.getElementById('balanceBtn').innerText = "إرسال طلب تحديث الرصيد";
+
+          document.getElementById('custodyTitle').innerHTML = `<i class="fa-solid fa-sim-card text-amber-600"></i> إرسال طلب تعديل عهدة (يحتاج اعتماد الإدارة)`;
+          document.getElementById('custodyBtn').innerText = "إرسال طلب تحديث العهدة";
+        } else {
+          // الإدارة والـ HR تظهر لهم لوحة متابعة الطلبات المعلقة
+          await fetchPendingRequests();
+        }
+
+        await fetchDelegatesDataForAdmin();
+      } else {
+        document.getElementById('adminPanel').classList.add('hidden');
+        document.getElementById('delegatePanel').classList.remove('hidden');
+        await fetchDelegatePersonalData(user.id);
+      }
+    }
+
+    async function fetchDelegatesDataForAdmin() {
+      if (!supabaseClient) return;
+      const { data, error } = await supabaseClient.from('delegates').select('*');
+      if (error) {
+        console.error(error);
+        return;
+      }
+      globalDelegatesList = data || [];
+      updateAdminDashboardUI();
+    }
+
+    function updateAdminDashboardUI() {
+      let filteredList = globalDelegatesList;
+
+      if (currentUser && currentUser.role === 'manager') {
+        filteredList = globalDelegatesList.filter(d => String(d.manager_id) === String(currentUser.id));
+      }
+
+      document.getElementById('statTotalDelegates').innerText = filteredList.length;
+      let totalSims = filteredList.reduce((acc, curr) => acc + (Number(curr.sims_custody) || 0), 0);
+      document.getElementById('statTotalSims').innerText = totalSims + " شريحة";
+
+      let totalBalances = filteredList.reduce((acc, curr) => acc + (Number(curr.wallet_balance) || 0), 0);
+      document.getElementById('statTotalBalances').innerText = totalBalances.toFixed(2) + " ر.س";
+
+      const selects = document.querySelectorAll('.delegate-select, #newUserManager, #editDelManager, #targetSelectDel, #editSelectDel, #balanceSelectDel, #custodySelectDel');
+      selects.forEach(sel => {
+        if (!sel) return;
+        const currentVal = sel.value;
+        let defaultOptHTML = sel.options[0] ? sel.options[0].outerHTML : '<option value="">-- اختر --</option>';
+        sel.innerHTML = defaultOptHTML;
+        
+        if (sel.id === 'newUserManager' || sel.id === 'editDelManager') {
+          globalDelegatesList.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.textContent = d.name + (d.role === 'manager' ? ' (مدير مباشر)' : d.role === 'admin' ? ' (مشرف)' : ' (مندوب)');
+            sel.appendChild(opt);
+          });
+        } else {
+          filteredList.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.textContent = d.name;
+            sel.appendChild(opt);
+          });
+        }
+        sel.value = currentVal;
+      });
+
+      const tbody = document.getElementById('delegatesListTbody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        filteredList.forEach(d => {
+          let roleName = "مندوب مبيعات";
+          if (d.role === 'admin') roleName = "مشرف";
+          else if (d.role === 'manager') roleName = "مدير مباشر";
+          else if (d.role === 'hr') roleName = "موارد بشرية";
+
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-50 transition cursor-pointer";
+          tr.innerHTML = `
+            <td class="p-3 font-bold text-indigo-900" onclick="openReportModal('${d.id}')">${d.name}</td>
+            <td class="p-3">${d.phone || '--'}</td>
+            <td class="p-3">${d.email || '--'}</td>
+            <td class="p-3"><span class="px-2 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-[10px] font-bold">${roleName}</span></td>
+            <td class="p-3">${d.manager_name || '--'}</td>
+            <td class="p-3 font-bold text-amber-600">${d.sims_custody || 0}</td>
+            <td class="p-3 font-bold text-emerald-600">${d.sims_sold || 0}</td>
+            <td class="p-3 font-bold">${d.wallet_balance || 0} ر.س</td>
+            <td class="p-3">${d.target_amount || 0}</td>
+            <td class="p-3 font-bold text-indigo-600">${d.target_progress || '0%'}</td>
+            <td class="p-3 text-center">
+              <button onclick="event.stopPropagation(); downloadSingleDelegateExcel('${d.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold">Excel</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    // جلب وعرض الطلبات المعلقة (لـ الإدارة و HR)
+    async function fetchPendingRequests() {
+      if (!supabaseClient) return;
+      const { data, error } = await supabaseClient.from('pending_requests').select('*').eq('status', 'pending');
+      const section = document.getElementById('pendingRequestsSection');
+      const tbody = document.getElementById('pendingRequestsTbody');
+      
+      if (error || !data || data.length === 0) {
+        if (section) section.classList.add('hidden');
+        return;
+      }
+
+      if (section) section.classList.remove('hidden');
+      if (tbody) {
+        tbody.innerHTML = '';
+        data.forEach(req => {
+          tbody.innerHTML += `
+            <tr class="hover:bg-amber-50/50">
+              <td class="p-3 font-bold text-amber-900">${req.request_type}</td>
+              <td class="p-3 font-semibold">${req.manager_name}</td>
+              <td class="p-3 text-slate-700">${req.details_text}</td>
+              <td class="p-3 text-center flex justify-center gap-2">
+                <button onclick="approveRequest('${req.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg text-[10px] font-bold">موافقة واعتماد</button>
+                <button onclick="rejectRequest('${req.id}')" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-lg text-[10px] font-bold">رفض</button>
+              </td>
+            </tr>
+          `;
+        });
+      }
+    }
+
+    // اعتماد الطلب وتنفيذه فعلياً في قاعدة البيانات
+    async function approveRequest(requestId) {
+      if (!confirm("هل أنت متأكد من الموافقة على هذا الطلب وتنفيذه؟")) return;
+      const { data: req, error } = await supabaseClient.from('pending_requests').select('*').eq('id', requestId).single();
+      if (error || !req) return;
+
+      const payload = req.payload_json;
+      
+      if (req.request_type === 'إضافة مندوب') {
+        await supabaseClient.from('delegates').insert([payload]);
+      } else if (req.request_type === 'تسجيل مبيعات' || req.request_type === 'تعديل رصيد' || req.request_type === 'تعديل عهدة') {
+        const { data: del } = await supabaseClient.from('delegates').select('*').eq('id', payload.delegate_id).single();
+        if (del) {
+          if (payload.update_type === 'sales') {
+            await supabaseClient.from('delegates').update({
+              sims_custody: del.sims_custody - payload.simsCount,
+              sims_sold: del.sims_sold + payload.simsCount,
+              wallet_balance: Number(del.wallet_balance) + payload.amount
+            }).eq('id', payload.delegate_id);
+            await logFinancialEvent(payload.delegate_id, del.name, 'إضافة مبيعات', payload.amount, `بواسطة اعتماد طلب المدير: ${payload.simsCount} شريحة`);
+            await logOperationalEvent(payload.delegate_id, del.name, 'عملية بيع', `خصم ${payload.simsCount} شريحة من العهدة`);
+          } else if (payload.update_type === 'balance') {
+            await supabaseClient.from('delegates').update({ wallet_balance: payload.newWallet }).eq('id', payload.delegate_id);
+            if (payload.add > 0) await logFinancialEvent(payload.delegate_id, del.name, 'إيداع رصيد', payload.add, 'اعتماد طلب مدير');
+            if (payload.deduct > 0) await logFinancialEvent(payload.delegate_id, del.name, 'خصم رصيد', payload.deduct, 'اعتماد طلب مدير');
+          } else if (payload.update_type === 'custody') {
+            await supabaseClient.from('delegates').update({ sims_custody: payload.newCustody }).eq('id', payload.delegate_id);
+            if (payload.addSims > 0) await logOperationalEvent(payload.delegate_id, del.name, 'إضافة عهدة شرائح', `اعتماد طلب مدير: إضافة ${payload.addSims} شريحة`);
+            if (payload.deductSims > 0) await logOperationalEvent(payload.delegate_id, del.name, 'سحب عهدة شرائح', `اعتماد طلب مدير: سحب ${payload.deductSims} شريحة`);
+          }
+        }
+      }
+
+      await supabaseClient.from('pending_requests').update({ status: 'approved' }).eq('id', requestId);
+      alert("تمت الموافقة على الطلب وتطبيقه بنجاح!");
+      fetchPendingRequests();
+      fetchDelegatesDataForAdmin();
+    }
+
+    async function rejectRequest(requestId) {
+      if (!confirm("هل أنت متأكد من رفض هذا الطلب؟")) return;
+      await supabaseClient.from('pending_requests').update({ status: 'rejected' }).eq('id', requestId);
+      alert("تم رفض الطلب.");
+      fetchPendingRequests();
+    }
+
+    async function fetchDelegatePersonalData(delegateId) {
+      if (!supabaseClient) return;
+      const { data, error } = await supabaseClient.from('delegates').select('*').eq('id', delegateId).single();
+      if (error || !data) return;
+      
+      currentUser = data;
+      document.getElementById('delegateWelcome').innerText = `أهلاً بك، ${data.name}`;
+      document.getElementById('delegateManagerDisplay').innerText = `المدير المباشر: ${data.manager_name || 'غير متوفر'}`;
+      document.getElementById('delSimsCustodyDisplay').innerHTML = `${data.sims_custody || 0} <span class="text-xs font-normal">شريحة</span>`;
+      document.getElementById('delWalletBalance').innerHTML = `${Number(data.wallet_balance || 0).toFixed(2)} <span class="text-xs font-normal">ر.س</span>`;
+      document.getElementById('delTargetProgressText').innerText = data.target_progress || '0%';
+
+      fetchDelegateLogs(delegateId);
+    }
+
+    async function fetchDelegateLogs(delegateId) {
+      const { data: finLogs } = await supabaseClient.from('financial_logs').select('*').eq('delegate_id', String(delegateId)).order('created_at', { ascending: false }).limit(5);
+      const finTbody = document.getElementById('delFinancialLogsTbody');
+      if (finTbody) {
+        finTbody.innerHTML = '';
+        (finLogs || []).forEach(log => {
+          finTbody.innerHTML += `<tr><td class="p-2">${log.action_type}</td><td class="p-2">${log.amount} ر.س</td><td class="p-2">${log.details}</td><td class="p-2">${new Date(log.created_at).toLocaleDateString()}</td></tr>`;
+        });
+      }
+
+      const { data: opLogs } = await supabaseClient.from('operational_logs').select('*').eq('delegate_id', String(delegateId)).order('created_at', { ascending: false }).limit(5);
+      const opTbody = document.getElementById('delOperationalLogsTbody');
+      if (opTbody) {
+        opTbody.innerHTML = '';
+        (opLogs || []).forEach(log => {
+          opTbody.innerHTML += `<tr><td class="p-2">${log.action_type}</td><td class="p-2">${log.details}</td><td class="p-2">${new Date(log.created_at).toLocaleDateString()}</td></tr>`;
+        });
+      }
+    }
+
+    async function handleCreateUser(e) {
+      e.preventDefault();
+      const name = document.getElementById('newUserName').value.trim();
+      const phone = document.getElementById('newUserPhone').value.trim();
+      const email = document.getElementById('newUserEmail').value.trim();
+      const password = document.getElementById('newUserPassword').value.trim();
+      const sims_custody = parseInt(document.getElementById('newUserSimsCustody').value) || 0;
+      const managerId = document.getElementById('newUserManager').value;
+      let role = document.getElementById('newUserRole').value;
+
+      let manager_name = '';
+      if (managerId) {
+        const mgr = globalDelegatesList.find(d => String(d.id) === String(managerId));
+        if (mgr) {
+          manager_name = mgr.name;
+          if (mgr.role === 'delegate' && currentUser.role !== 'manager') {
+            await supabaseClient.from('delegates').update({ role: 'manager' }).eq('id', managerId);
+          }
+        }
+      }
+
+      const newUserData = { name, phone, email, password, sims_custody, manager_id: managerId || null, manager_name, role, wallet_balance: 0, sims_sold: 0 };
+
+      if (currentUser && currentUser.role === 'manager') {
+        // إرسال طلب معلق للإدارة والـ HR
+        await supabaseClient.from('pending_requests').insert([{
+          request_type: 'إضافة مندوب',
+          manager_id: currentUser.id,
+          manager_name: currentUser.name,
+          details_text: `طلب إضافة المندوب الجديد: ${name} (جوال: ${phone})`,
+          payload_json: newUserData,
+          status: 'pending'
+        }]);
+        alert("تم إرسال طلب إضافة المندوب إلى الإدارة والموارد البشرية في انتظار الموافقة والاعتماد.");
+        e.target.reset();
+        return;
+      }
+
+      try {
+        const { error } = await supabaseClient.from('delegates').insert([newUserData]);
+        if (error) throw error;
+        alert("تم إنشاء الحساب بنجاح وتم تحديث الصلاحيات تلقائياً!");
+        e.target.reset();
+        fetchDelegatesDataForAdmin();
+      } catch (err) {
+        console.error(err);
+        alert("فشل إنشاء الحساب، تأكد من البيانات المدخلة");
+      }
+    }
+
+    async function handleAdminRecordSale(e) {
+      e.preventDefault();
+      const delegateId = document.getElementById('adminSaleDelegateId').value;
+      const simsCount = parseInt(document.getElementById('adminSaleSimsCount').value) || 0;
+      const amount = parseFloat(document.getElementById('adminSaleAmount').value) || 0;
+
+      const delegate = globalDelegatesList.find(d => String(d.id) === String(delegateId));
+      if (!delegate) return;
+
+      if ((delegate.sims_custody || 0) < simsCount) {
+        alert("عدد الشرائح المباعة أكبر من عهدة الشرائح الحالية للمندوب!");
+        return;
+      }
+
+      if (currentUser && currentUser.role === 'manager') {
+        await supabaseClient.from('pending_requests').insert([{
+          request_type: 'تسجيل مبيعات',
+          manager_id: currentUser.id,
+          manager_name: currentUser.name,
+          details_text: `تسجيل بيع ${simsCount} شريحة للمندوب ${delegate.name} بمبلغ ${amount} ر.س`,
+          payload_json: { delegate_id: delegateId, simsCount, amount, update_type: 'sales' },
+          status: 'pending'
+        }]);
+        alert("تم إرسال طلب تسجيل المبيعات للإدارة لاعتماده.");
+        e.target.reset();
+        return;
+      }
+
+      try {
+        const newSimsCustody = (delegate.sims_custody || 0) - simsCount;
+        const newSimsSold = (delegate.sims_sold || 0) + simsCount;
+        const newWallet = (Number(delegate.wallet_balance) || 0) + amount;
+
+        await supabaseClient.from('delegates').update({
+          sims_custody: newSimsCustody,
+          sims_sold: newSimsSold,
+          wallet_balance: newWallet
+        }).eq('id', delegateId);
+
+        await logFinancialEvent(delegateId, delegate.name, 'إضافة مبيعات', amount, `تم تسجيل بيع ${simsCount} شريحة`);
+        await logOperationalEvent(delegateId, delegate.name, 'عملية بيع', `خصم ${simsCount} شريحة من العهدة`);
+
+        alert("تم تسجيل عملية البيع بنجاح!");
+        e.target.reset();
+        fetchDelegatesDataForAdmin();
+      } catch (err) {
+        console.error(err);
+        alert("حدث خطأ أثناء تنفيذ العملية");
+      }
+    }
+
+    async function handleManageBalance(e) {
+      e.preventDefault();
+      const delegateId = document.getElementById('balanceSelectDel').value;
+      const add = parseFloat(document.getElementById('addBalance').value) || 0;
+      const deduct = parseFloat(document.getElementById('deductBalance').value) || 0;
+
+      const delegate = globalDelegatesList.find(d => String(d.id) === String(delegateId));
+      if (!delegate) return;
+
+      const diff = add - deduct;
+      const newWallet = (Number(delegate.wallet_balance) || 0) + diff;
+
+      if (currentUser && currentUser.role === 'manager') {
+        await supabaseClient.from('pending_requests').insert([{
+          request_type: 'تعديل رصيد',
+          manager_id: currentUser.id,
+          manager_name: currentUser.name,
+          details_text: `تعديل رصيد المندوب ${delegate.name}: إضافة (${add}) - خصم (${deduct})`,
+          payload_json: { delegate_id: delegateId, add, deduct, newWallet, update_type: 'balance' },
+          status: 'pending'
+        }]);
+        alert("تم إرسال طلب تعديل الرصيد للإدارة لاعتماده.");
+        e.target.reset();
+        return;
+      }
+
+      try {
+        await supabaseClient.from('delegates').update({ wallet_balance: newWallet }).eq('id', delegateId);
+        if (add > 0) await logFinancialEvent(delegateId, delegate.name, 'إيداع رصيد', add, 'إضافة رصيد يدوي');
+        if (deduct > 0) await logFinancialEvent(delegateId, delegate.name, 'خصم رصيد', deduct, 'خصم رصيد يدوي');
+
+        alert("تم تحديث الرصيد بنجاح!");
+        e.target.reset();
+        fetchDelegatesDataForAdmin();
+      } catch (err) {
+        console.error(err);
+        alert("فشل تحديث الرصيد");
+      }
+    }
+
+    async function handleManageCustody(e) {
+      e.preventDefault();
+      const delegateId = document.getElementById('custodySelectDel').value;
+      const addSims = parseInt(document.getElementById('addCustodySims').value) || 0;
+      const deductSims = parseInt(document.getElementById('deductCustodySims').value) || 0;
+
+      const delegate = globalDelegatesList.find(d => String(d.id) === String(delegateId));
+      if (!delegate) return;
+
+      const newCustody = (delegate.sims_custody || 0) + addSims - deductSims;
+      if (newCustody < 0) {
+        alert("لا يمكن أن تكون عهدة الشرائح بالسالب!");
+        return;
+      }
+
+      if (currentUser && currentUser.role === 'manager') {
+        await supabaseClient.from('pending_requests').insert([{
+          request_type: 'تعديل عهدة',
+          manager_id: currentUser.id,
+          manager_name: currentUser.name,
+          details_text: `تعديل عهدة المندوب ${delegate.name}: إضافة (${addSims}) - سحب (${deductSims})`,
+          payload_json: { delegate_id: delegateId, addSims, deductSims, newCustody, update_type: 'custody' },
+          status: 'pending'
+        }]);
+        alert("تم إرسال طلب تعديل العهدة للإدارة لاعتماده.");
+        e.target.reset();
+        return;
+      }
+
+      try {
+        await supabaseClient.from('delegates').update({ sims_custody: newCustody }).eq('id', delegateId);
+        if (addSims > 0) await logOperationalEvent(delegateId, delegate.name, 'إضافة عهدة شرائح', `إضافة ${addSims} شريحة`);
+        if (deductSims > 0) await logOperationalEvent(delegateId, delegate.name, 'سحب عهدة شرائح', `سحب ${deductSims} شريحة`);
+
+        alert("تم تحديث عهدة الشرائح بنجاح!");
+        e.target.reset();
+        fetchDelegatesDataForAdmin();
+      } catch (err) {
+        console.error(err);
+        alert("فشل تحديث عهدة الشرائح");
+      }
+    }
+
+    function fillEditInputs() {
+      const id = document.getElementById('editSelectDel').value;
+      const d = globalDelegatesList.find(item => String(item.id) === String(id));
+      if (!d) return;
+      document.getElementById('editDelName').value = d.name || '';
+      document.getElementById('editDelPhone').value = d.phone || '';
+      document.getElementById('editDelEmail').value = d.email || '';
+      document.getElementById('editDelManager').value = d.manager_id || '';
+    }
+
+    async function handleUpdateDelegateData(e) {
+      e.preventDefault();
+      const id = document.getElementById('editSelectDel').value;
+      if (!id) return;
+      const name = document.getElementById('editDelName').value.trim();
+      const phone = document.getElementById('editDelPhone').value.trim();
+      const email = document.getElementById('editDelEmail').value.trim();
+      const password = document.getElementById('editDelPassword').value.trim();
+      const managerId = document.getElementById('editDelManager').value;
+
+      let manager_name = '';
+      if (managerId) {
+        const mgr = globalDelegatesList.find(item => String(item.id) === String(managerId));
+        if (mgr) {
+          manager_name = mgr.name;
+          if (mgr.role === 'delegate' && currentUser.role !== 'manager') {
+            await supabaseClient.from('delegates').update({ role: 'manager' }).eq('id', managerId);
+          }
+        }
+      }
+
+      let updateData = { name, phone, email, manager_id: managerId || null, manager_name };
+      if (password) updateData.password = password;
+
+      if (currentUser && currentUser.role === 'manager') {
+        alert("تعديل بيانات المناديب والحذف متاح فقط للإدارة والموارد البشرية.");
+        return;
+      }
+
+      try {
+        await supabaseClient.from('delegates').update(updateData).eq('id', id);
+        alert("تم تحديث بيانات المندوب بنجاح!");
+        fetchDelegatesDataForAdmin();
+      } catch (err) {
+        console.error(err);
+        alert("فشل تحديث البيانات");
+      }
+    }
+
+    async function deleteDelegateWithClearance() {
+      if (currentUser && currentUser.role === 'manager') {
+        alert("حذف المناديب متاح فقط للإدارة والموارد البشرية.");
+        return;
+      }
+      const id = document.getElementById('editSelectDel').value;
+      if (!id) {
+        alert("يرجى اختيار المندوب المراد حذفه أولاً");
+        return;
+      }
+      const fileInput = document.getElementById('clearanceFile');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert("ملف إخلاء الطرف إجباري عند حذف أي مندوب!");
+        return;
+      }
+
+      if (!confirm("هل أنت متأكد من حذف هذا المندوب نهائياً؟")) return;
+
+      try {
+        await supabaseClient.from('delegates').delete().eq('id', id);
+        alert("تم حذف المندوب وإخلاء طرفه بنجاح!");
+        fetchDelegatesDataForAdmin();
+      } catch (err) {
+        console.error(err);
+        alert("حدث خطأ أثناء الحذف");
+      }
+    }
+
+    function fillTargetInputs() {
+      const id = document.getElementById('targetSelectDel').value;
+      const d = globalDelegatesList.find(item => String(item.id) === String(id));
+      if (!d) return;
+      document.getElementById('targetAmount').value = d.target_amount || '';
+      document.getElementById('targetStartDate').value = d.target_start_date || '';
+      document.getElementById('targetEndDate').value = d.target_end_date || '';
+    }
+
+    async function handleSetTarget(e) {
+      e.preventDefault();
+      if (currentUser && currentUser.role === 'manager') {
+        alert("تحديد التارقت متاح فقط للإدارة والموارد البشرية.");
+        return;
+      }
+      const id = document.getElementById('targetSelectDel').value;
+      const target_amount = parseInt(document.getElementById('targetAmount').value) || 0;
+      const target_start_date = document.getElementById('targetStartDate').value;
+      const target_end_date = document.getElementById('targetEndDate').value;
+
+      const delegate = globalDelegatesList.find(d => String(d.id) === String(id));
+      if (!delegate) return;
+
+      let progress = 0;
+      if (target_amount > 0) {
+        progress = Math.min(100, Math.round(((delegate.sims_sold || 0) / target_amount) * 100));
+      }
+
+      try {
+        await supabaseClient.from('delegates').update({
+          target_amount, target_start_date, target_end_date, target_progress: progress + '%'
+        }).eq('id', id);
+
+        alert("تم حفظ التارقت بنجاح!");
+        fetchDelegatesDataForAdmin();
+      } catch (err) {
+        console.error(err);
+        alert("فشل حفظ التارقت");
+      }
+    }
+
+    async function handleTransferBalance(e) {
+      e.preventDefault();
+      const recipientEmail = document.getElementById('transferRecipientEmail').value.trim();
+      const amount = parseFloat(document.getElementById('transferAmount').value) || 0;
+
+      if (recipientEmail === currentUser.email) {
+        alert("لا يمكنك تحويل رصيد لنفسك!");
+        return;
+      }
+
+      if ((currentUser.wallet_balance || 0) < amount) {
+        alert("رصيد محفظتك غير كافٍ لإتمام التحويل!");
+        return;
+      }
+
+      try {
+        const { data: recData, error: recErr } = await supabaseClient.from('delegates').select('*').eq('email', recipientEmail).single();
+        if (recErr || !recData) {
+          alert("البريد الإلكتروني للمستلم غير موجود في النظام");
+          return;
+        }
+
+        const newSenderWallet = (Number(currentUser.wallet_balance) || 0) - amount;
+        const newRecWallet = (Number(recData.wallet_balance) || 0) + amount;
+
+        await supabaseClient.from('delegates').update({ wallet_balance: newSenderWallet }).eq('id', currentUser.id);
+        await supabaseClient.from('delegates').update({ wallet_balance: newRecWallet }).eq('id', recData.id);
+
+        await logFinancialEvent(currentUser.id, currentUser.name, 'تحويل صادر', amount, `إلى المندوب ${recData.name}`);
+        await logFinancialEvent(recData.id, recData.name, 'تحويل وارد', amount, `من المندوب ${currentUser.name}`);
+
+        alert("تم تحويل الرصيد بنجاح!");
+        currentUser.wallet_balance = newSenderWallet;
+        document.getElementById('delWalletBalance').innerHTML = `${newSenderWallet.toFixed(2)} <span class="text-xs font-normal">ر.س</span>`;
+        e.target.reset();
+        fetchDelegateLogs(currentUser.id);
+      } catch (err) {
+        console.error(err);
+        alert("حدث خطأ أثناء عملية التحويل");
+      }
+    }
+
+    async function handleWithdrawalRequest(e) {
+      e.preventDefault();
+      const amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
+      const method = document.getElementById('withdrawMethod').value;
+      const date = document.getElementById('withdrawDate').value;
+      const reason = document.getElementById('withdrawReason').value.trim();
+
+      if ((currentUser.wallet_balance || 0) < amount) {
+        alert("رصيد محفظتك غير كافٍ لتقديم طلب السحب!");
+        return;
+      }
+
+      try {
+        const newWallet = (Number(currentUser.wallet_balance) || 0) - amount;
+        await supabaseClient.from('delegates').update({ wallet_balance: newWallet }).eq('id', currentUser.id);
+        
+        await logFinancialEvent(currentUser.id, currentUser.name, 'طلب سحب أموال', amount, `الطريقة: ${method} - السبب: ${reason}`);
+
+        alert("تم إرسال طلب السحب بنجاح");
+        currentUser.wallet_balance = newWallet;
+        document.getElementById('delWalletBalance').innerHTML = `${newWallet.toFixed(2)} <span class="text-xs font-normal">ر.س</span>`;
+        e.target.reset();
+        document.getElementById('withdrawDate').valueAsDate = new Date();
+        fetchDelegateLogs(currentUser.id);
+      } catch (err) {
+        console.error(err);
+        alert("حدث خطأ أثناء إرسال الطلب");
+      }
+    }
+
+    async function logFinancialEvent(delegate_id, delegate_name, action_type, amount, details) {
+      await supabaseClient.from('financial_logs').insert([{ delegate_id, delegate_name, action_type, amount, details }]);
+    }
+
+    async function logOperationalEvent(delegate_id, delegate_name, action_type, details) {
+      await supabaseClient.from('operational_logs').insert([{ delegate_id, delegate_name, action_type, details }]);
+    }
+
+    async function openReportModal(delegateId) {
+      const d = globalDelegatesList.find(item => String(item.id) === String(delegateId));
+      if (!d) return;
+
+      const modal = document.getElementById('reportModal');
+      const content = document.getElementById('reportContent');
+      modal.classList.remove('hidden');
+
+      const { data: fin } = await supabaseClient.from('financial_logs').select('*').eq('delegate_id', String(delegateId));
+      const { data: op } = await supabaseClient.from('operational_logs').select('*').eq('delegate_id', String(delegateId));
+
+      content.innerHTML = `
+        <div class="bg-slate-50 p-4 rounded-2xl space-y-2 border">
+          <h4 class="font-black text-sm text-indigo-950">${d.name}</h4>
+          <p class="text-xs text-slate-600">الجوال: ${d.phone || '--'} | البريد: ${d.email || '--'} | الصلاحية: ${d.role}</p>
+          <p class="text-xs text-slate-600">العهدة الحالية: ${d.sims_custody || 0} | المبيعات: ${d.sims_sold || 0} | الرصيد: ${d.wallet_balance || 0} ر.س</p>
+        </div>
+        <div>
+          <h5 class="font-bold text-xs text-slate-700 mb-2">العمليات المالية</h5>
+          <table class="w-full text-right text-xs border"><thead class="bg-slate-100"><tr><th class="p-2">النوع</th><th class="p-2">المبلغ</th><th class="p-2">التفاصيل</th><th class="p-2">التاريخ</th></tr></thead><tbody>
+          ${(fin || []).map(l => `<tr><td class="p-2 border">${l.action_type}</td><td class="p-2 border">${l.amount}</td><td class="p-2 border">${l.details}</td><td class="p-2 border">${new Date(l.created_at).toLocaleDateString()}</td></tr>`).join('')}
+          </tbody></table>
+        </div>
+        <div>
+          <h5 class="font-bold text-xs text-slate-700 mb-2">العمليات التشغيلية</h5>
+          <table class="w-full text-right text-xs border"><thead class="bg-slate-100"><tr><th class="p-2">الحدث</th><th class="p-2">التفاصيل</th><th class="p-2">التاريخ</th></tr></thead><tbody>
+          ${(op || []).map(l => `<tr><td class="p-2 border">${l.action_type}</td><td class="p-2 border">${l.details}</td><td class="p-2 border">${new Date(l.created_at).toLocaleDateString()}</td></tr>`).join('')}
+          </tbody></table>
+        </div>
+      `;
+    }
+
+    function closeReportModal() {
+      document.getElementById('reportModal').classList.add('hidden');
+    }
+
+    async function downloadAdminLogs(type) {
+      let dataToExport = globalDelegatesList;
+      if (currentUser && currentUser.role === 'manager') {
+        const teamIds = globalDelegatesList.filter(d => String(d.manager_id) === String(currentUser.id)).map(d => String(d.id));
+        teamIds.push(String(currentUser.id));
+        const table = type === 'financial' ? 'financial_logs' : 'operational_logs';
+        const { data } = await supabaseClient.from(table).select('*').in('delegate_id', teamIds);
+        dataToExport = data;
+      } else {
+        const table = type === 'financial' ? 'financial_logs' : 'operational_logs';
+        const { data } = await supabaseClient.from(table).select('*');
+        dataToExport = data;
+      }
+
+      if (!dataToExport || dataToExport.length === 0) {
+        alert("لا توجد بيانات للتصدير");
+        return;
+      }
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Logs");
+      XLSX.writeFile(workbook, `Manager_${type}_Logs.xlsx`);
+    }
+
+    async function downloadDelegateLogs(type) {
+      const table = type === 'financial' ? 'financial_logs' : 'operational_logs';
+      const { data } = await supabaseClient.from(table).select('*').eq('delegate_id', String(currentUser.id));
+      if (!data || data.length === 0) {
+        alert("لا توجد بيانات للتصدير");
+        return;
+      }
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "MyLogs");
+      XLSX.writeFile(workbook, `My_${type}_Logs.xlsx`);
+    }
+
+    async function downloadSingleDelegateExcel(delegateId) {
+      const d = globalDelegatesList.find(item => String(item.id) === String(delegateId));
+      const { data } = await supabaseClient.from('financial_logs').select('*').eq('delegate_id', String(delegateId));
+      if (!data) return;
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "DelegateReport");
+      XLSX.writeFile(workbook, `Delegate_${d ? d.name : delegateId}_Report.xlsx`);
+    }
+  </script>
+</body>
+</html>

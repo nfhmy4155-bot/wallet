@@ -55,7 +55,7 @@
           <i class="fa-solid fa-chart-line text-xl"></i>
         </div>
         <div>
-          <h1 class="font-black text-lg leading-tight">منظومة المبيعات والعهدة</h1>
+          <h1 class="font-black text-lg leading-tight">شركة نوف تك للاتصالات وتقنية المعلومات (شركة ذات مسوؤلية محدودة)</h1>
           <p id="userRoleBadge" class="text-[10px] text-amber-300 font-bold">جاري التحقق...</p>
         </div>
       </div>
@@ -133,10 +133,29 @@
         </div>
       </div>
 
+      <!-- طلبات عهدة السيريال الواردة من الموارد البشرية (تظهر فقط للمدير المباشر المعني) -->
+      <div id="managerSerialRequestsSection" class="bg-purple-50 p-6 rounded-2xl shadow-sm border border-purple-200 hidden">
+        <h3 class="font-bold text-sm text-purple-900 border-b border-purple-200 pb-3 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-barcode text-purple-600"></i> طلبات عهدة سيريال واردة من الموارد البشرية (بانتظار موافقتك)
+        </h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-right text-xs bg-white rounded-xl overflow-hidden shadow-sm">
+            <thead class="bg-purple-100 text-purple-900 font-bold border-b">
+              <tr>
+                <th class="p-3">المندوب</th>
+                <th class="p-3">تفاصيل الطلب</th>
+                <th class="p-3 text-center">الإجراء</th>
+              </tr>
+            </thead>
+            <tbody id="managerSerialRequestsTbody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- قسم إنشاء الحسابات (خاص بالـ Admin/HR أو إرسال طلب للمدير) -->
       <div id="createUserSection" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
         <h3 id="createUserTitle" class="font-bold text-sm text-slate-800 border-b pb-3 mb-4 flex items-center gap-2">
-          <i class="fa-solid fa-user-plus text-indigo-600"></i> إضافة حساب جديد وتحديد الصلاحيات والمدير المباشر
+          <i class="fa-solid fa-user-plus text-indigo-600"></i> فتح يوزر جديد 
         </h3>
         <form onsubmit="handleCreateUser(event)" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
           <div>
@@ -187,11 +206,24 @@
         <h3 id="saleTitle" class="font-bold text-sm text-slate-800 border-b pb-3 mb-4 flex items-center gap-2">
           <i class="fa-solid fa-cart-shopping text-emerald-600"></i> تسجيل عملية بيع جديدة
         </h3>
-        <form onsubmit="handleAdminRecordSale(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <form onsubmit="handleAdminRecordSale(event)" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
           <div>
             <label class="block text-xs font-bold text-slate-600 mb-1">اختر المندوب المنفذ للبيع</label>
             <select id="adminSaleDelegateId" required class="delegate-select w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
               <option value="">-- اختر المندوب --</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">شركة الاتصالات المنفذ عليها البيع</label>
+            <select id="adminSaleTelecomCompany" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              <option value="">-- اختر شركة الاتصالات --</option>
+              <option value="الاتصالات السعودية (STC)">الاتصالات السعودية (STC)</option>
+              <option value="موبايلي (Mobily)">موبايلي (Mobily)</option>
+              <option value="زين السعودية (Zain)">زين السعودية (Zain)</option>
+              <option value="فيرجن موبايل السعودية (Virgin Mobile)">فيرجن موبايل السعودية (Virgin Mobile)</option>
+              <option value="ليبارا السعودية (Lebara)">ليبارا السعودية (Lebara)</option>
+              <option value="سلام / جو تليكوم (Salam GO Telecom)">سلام / جو تليكوم (Salam - GO Telecom)</option>
+              <option value="أخرى">أخرى</option>
             </select>
           </div>
           <div>
@@ -209,6 +241,47 @@
           <div class="flex items-end">
             <button type="submit" id="saleBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md">
               تسجيل عملية البيع
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- إضافة عهدة سيريال (منفصلة عن عهدة الشرائح) - خاص بالموارد البشرية والإدارة، وتحتاج موافقة المدير المباشر -->
+      <div id="serialCustodySection" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+        <h3 class="font-bold text-sm text-slate-800 border-b pb-3 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-barcode text-purple-600"></i> إضافة عهدة سيريال
+        </h3>
+        <form onsubmit="handleAddSerialCustody(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">اختر المندوب</label>
+            <select id="serialCustodySelectDel" required class="delegate-select w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              <option value="">-- اختر المندوب --</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">شركة العهدة</label>
+            <select id="serialCustodyCompany" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              <option value="">-- اختر شركة العهدة --</option>
+              <option value="الاتصالات السعودية (STC)">الاتصالات السعودية (STC)</option>
+              <option value="موبايلي (Mobily)">موبايلي (Mobily)</option>
+              <option value="زين السعودية (Zain)">زين السعودية (Zain)</option>
+              <option value="فيرجن موبايل السعودية (Virgin Mobile)">فيرجن موبايل السعودية (Virgin Mobile)</option>
+              <option value="ليبارا السعودية (Lebara)">ليبارا السعودية (Lebara)</option>
+              <option value="سلام / جو تليكوم (Salam GO Telecom)">سلام / جو تليكوم (Salam - GO Telecom)</option>
+              <option value="أخرى">أخرى</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">عدد عهدة السيريال</label>
+            <input type="number" id="serialCustodyAmount" min="1" required placeholder="مثال: 10" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">ملاحظة (اختياري)</label>
+            <input type="text" id="serialCustodyNote" placeholder="أي ملاحظة إضافية" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+          </div>
+          <div class="col-span-full flex justify-end">
+            <button type="submit" id="serialCustodyBtn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition shadow-md">
+              إرسال طلب عهدة سيريال لاعتماد المدير المباشر
             </button>
           </div>
         </form>
@@ -309,6 +382,15 @@
               <label class="block text-xs font-bold text-slate-600 mb-1">المدير المباشر</label>
               <select id="editDelManager" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 outline-none">
                 <option value="">-- بدون مدير مباشر --</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">تعديل الصلاحية (نوع الحساب)</label>
+              <select id="editDelRole" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-indigo-900 outline-none">
+                <option value="delegate">مندوب مبيعات</option>
+                <option value="manager">مدير مباشر</option>
+                <option value="admin">مشرف / إدارة عامة</option>
+                <option value="hr">موارد بشرية (HR)</option>
               </select>
             </div>
             <div>
@@ -440,6 +522,87 @@
               </button>
             </form>
           </div>
+
+          <!-- تعديل بيانات المورد وحذفه -->
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+            <h3 class="font-bold text-sm text-slate-800 border-b pb-3 flex items-center gap-2">
+              <i class="fa-solid fa-user-gear text-indigo-600"></i> تعديل بيانات المورد وصلاحيته أو حذفه
+            </h3>
+            <form onsubmit="handleUpdateSupplierData(event)" class="space-y-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">اختر المورد</label>
+                <select id="editSupplierSelect" onchange="fillSupplierEditInputs()" required class="supplier-select w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+                  <option value="">-- اختر المورد --</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">اسم المورد</label>
+                <input type="text" id="editSupplierName" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">تصنيف / صلاحية المورد</label>
+                <select id="editSupplierCategory" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+                  <option value="مورد شرائح">مورد شرائح</option>
+                  <option value="مورد أجهزة">مورد أجهزة</option>
+                  <option value="شركة اتصالات">شركة اتصالات</option>
+                  <option value="خدمات لوجستية">خدمات لوجستية</option>
+                  <option value="أخرى">أخرى</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">رقم الجوال</label>
+                <input type="text" id="editSupplierPhone" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">البريد الإلكتروني</label>
+                <input type="email" id="editSupplierEmail" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">كلمة السر الجديدة</label>
+                <input type="password" id="editSupplierPassword" placeholder="اتركه فارغاً للتثبيت" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              </div>
+              <div class="flex gap-2">
+                <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition">
+                  تعديل بيانات المورد
+                </button>
+                <button type="button" onclick="deleteSupplier()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-2.5 rounded-xl text-xs transition">
+                  حذف
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- تحديد تارقت للمورد -->
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+            <h3 class="font-bold text-sm text-slate-800 border-b pb-3 flex items-center gap-2">
+              <i class="fa-solid fa-bullseye text-amber-500"></i> تحديد التارقت للمورد
+            </h3>
+            <form onsubmit="handleSetSupplierTarget(event)" class="space-y-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">اختر المورد</label>
+                <select id="supplierTargetSelect" onchange="fillSupplierTargetInputs()" required class="supplier-select w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+                  <option value="">-- اختر المورد --</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">الهدف المطلوب (Target)</label>
+                <input type="number" id="supplierTargetAmount" required placeholder="مثال: 500" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-xs font-bold text-slate-600 mb-1">تاريخ البداية</label>
+                  <input type="date" id="supplierTargetStartDate" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-600 mb-1">تاريخ النهاية</label>
+                  <input type="date" id="supplierTargetEndDate" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+                </div>
+              </div>
+              <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs transition">
+                حفظ تارقت المورد
+              </button>
+            </form>
+          </div>
         </div>
 
         <!-- قائمة الموردين -->
@@ -458,6 +621,7 @@
                   <th class="p-3">رقم الجوال</th>
                   <th class="p-3">البريد الإلكتروني</th>
                   <th class="p-3">الرصيد الحالي</th>
+                  <th class="p-3">الهدف (Target)</th>
                   <th class="p-3 text-center">السجل</th>
                   <th class="p-3 text-center">تصدير</th>
                 </tr>
@@ -485,6 +649,7 @@
                 <th class="p-3">الصلاحية</th>
                 <th class="p-3">المدير المباشر</th>
                 <th class="p-3">عهدة الشرائح</th>
+                <th class="p-3">عهدة السيريال</th>
                 <th class="p-3">الشرائح المباعة</th>
                 <th class="p-3">رصيد المحفظة</th>
                 <th class="p-3">الهدف (Target)</th>
@@ -516,10 +681,14 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-indigo-900 text-white p-6 rounded-2xl shadow-sm">
           <p class="text-xs text-indigo-300 font-bold">عهدة الشرائح الحالية</p>
           <h3 id="delSimsCustodyDisplay" class="text-3xl font-black mt-2">0 <span class="text-xs font-normal">شريحة</span></h3>
+        </div>
+        <div class="bg-purple-800 text-white p-6 rounded-2xl shadow-sm">
+          <p class="text-xs text-purple-200 font-bold">عهدة السيريال الحالية</p>
+          <h3 id="delSerialCustodyDisplay" class="text-3xl font-black mt-2">0 <span class="text-xs font-normal">عهدة</span></h3>
         </div>
         <div class="bg-emerald-800 text-white p-6 rounded-2xl shadow-sm">
           <p class="text-xs text-emerald-200 font-bold">رصيد المحفظة المتاح</p>
@@ -865,9 +1034,14 @@
           document.getElementById('custodyTitle').innerHTML = `<i class="fa-solid fa-sim-card text-amber-600"></i> إرسال طلب تعديل عهدة (يحتاج اعتماد الإدارة)`;
           document.getElementById('custodyBtn').innerText = "إرسال طلب تحديث العهدة";
 
-          // إدارة الموردين خاصة بالإدارة والموارد البشرية فقط
+          // إدارة الموردين وإضافة عهدة السيريال خاصة بالإدارة والموارد البشرية فقط
           const suppliersSection = document.getElementById('suppliersSection');
           if (suppliersSection) suppliersSection.classList.add('hidden');
+          const serialCustodySection = document.getElementById('serialCustodySection');
+          if (serialCustodySection) serialCustodySection.classList.add('hidden');
+
+          // المدير المباشر يراجع طلبات عهدة السيريال الواردة من الموارد البشرية والخاصة بفريقه
+          await fetchManagerSerialRequests();
         } else {
           // الإدارة والـ HR تظهر لهم لوحة متابعة الطلبات المعلقة
           await fetchPendingRequests();
@@ -932,6 +1106,7 @@
             <td class="p-3">${escapeHtml(s.phone || '--')}</td>
             <td class="p-3">${escapeHtml(s.email || '--')}</td>
             <td class="p-3 font-bold ${Number(s.balance) < 0 ? 'text-rose-600' : 'text-emerald-600'}">${Number(s.balance || 0).toFixed(2)} ر.س</td>
+            <td class="p-3 font-bold text-amber-600">${s.target_amount || 0}</td>
             <td class="p-3 text-center">
               <button onclick="openSupplierReport('${s.id}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold">عرض السجل</button>
             </td>
@@ -1006,6 +1181,109 @@
       }
     }
 
+    // تعبئة نموذج تعديل بيانات المورد عند الاختيار
+    function fillSupplierEditInputs() {
+      const id = document.getElementById('editSupplierSelect').value;
+      const s = globalSuppliersList.find(item => String(item.id) === String(id));
+      if (!s) return;
+      document.getElementById('editSupplierName').value = s.name || '';
+      document.getElementById('editSupplierCategory').value = s.category || '';
+      document.getElementById('editSupplierPhone').value = s.phone || '';
+      document.getElementById('editSupplierEmail').value = s.email || '';
+    }
+
+    // تعديل بيانات المورد وصلاحيته (تصنيفه)
+    async function handleUpdateSupplierData(e) {
+      e.preventDefault();
+      e.submitter.disabled = true;
+      if (currentUser && currentUser.role === 'manager') {
+        alert("تعديل بيانات الموردين متاح فقط للإدارة والموارد البشرية.");
+        return;
+      }
+      const id = document.getElementById('editSupplierSelect').value;
+      if (!id) { alert('يرجى اختيار المورد'); e.submitter.disabled = false; return; }
+      const name = document.getElementById('editSupplierName').value.trim();
+      const category = document.getElementById('editSupplierCategory').value;
+      const phone = document.getElementById('editSupplierPhone').value.trim();
+      const email = document.getElementById('editSupplierEmail').value.trim();
+      const password = document.getElementById('editSupplierPassword').value.trim();
+
+      let updateData = { name, category, phone, email };
+      if (password) updateData.password = password;
+
+      try {
+        await supabaseClient.from('suppliers').update(updateData).eq('id', id);
+        alert('تم تحديث بيانات المورد بنجاح!');
+        e.target.reset();
+        fetchSuppliersDataForAdmin();
+      } catch (err) {
+        console.error(err);
+        alert('فشل تحديث بيانات المورد');
+      } finally {
+        e.submitter.disabled = false;
+      }
+    }
+
+    // حذف مورد
+    async function deleteSupplier() {
+      if (currentUser && currentUser.role === 'manager') {
+        alert("حذف الموردين متاح فقط للإدارة والموارد البشرية.");
+        return;
+      }
+      const id = document.getElementById('editSupplierSelect').value;
+      if (!id) { alert('يرجى اختيار المورد المراد حذفه أولاً'); return; }
+      if (!confirm('هل أنت متأكد من حذف هذا المورد نهائياً؟')) return;
+
+      try {
+        await supabaseClient.from('suppliers').delete().eq('id', id);
+        alert('تم حذف المورد بنجاح!');
+        fetchSuppliersDataForAdmin();
+      } catch (err) {
+        console.error(err);
+        alert('حدث خطأ أثناء الحذف');
+      }
+    }
+
+    // تعبئة نموذج تارقت المورد عند الاختيار
+    function fillSupplierTargetInputs() {
+      const id = document.getElementById('supplierTargetSelect').value;
+      const s = globalSuppliersList.find(item => String(item.id) === String(id));
+      if (!s) return;
+      document.getElementById('supplierTargetAmount').value = s.target_amount || '';
+      document.getElementById('supplierTargetStartDate').value = s.target_start_date || '';
+      document.getElementById('supplierTargetEndDate').value = s.target_end_date || '';
+    }
+
+    // تحديد تارقت للمورد
+    async function handleSetSupplierTarget(e) {
+      e.preventDefault();
+      e.submitter.disabled = true;
+      if (currentUser && currentUser.role === 'manager') {
+        alert("تحديد التارقت متاح فقط للإدارة والموارد البشرية.");
+        return;
+      }
+      const id = document.getElementById('supplierTargetSelect').value;
+      if (!id) { alert('يرجى اختيار المورد'); e.submitter.disabled = false; return; }
+      const target_amount = parseInt(document.getElementById('supplierTargetAmount').value) || 0;
+      const target_start_date = document.getElementById('supplierTargetStartDate').value;
+      const target_end_date = document.getElementById('supplierTargetEndDate').value;
+
+      try {
+        await supabaseClient.from('suppliers').update({
+          target_amount, target_start_date, target_end_date
+        }).eq('id', id);
+
+        alert('تم حفظ تارقت المورد بنجاح!');
+        e.target.reset();
+        fetchSuppliersDataForAdmin();
+      } catch (err) {
+        console.error(err);
+        alert('فشل حفظ تارقت المورد');
+      } finally {
+        e.submitter.disabled = false;
+      }
+    }
+
     async function logSupplierEvent(supplier_id, supplier_name, action_type, amount, details) {
       await supabaseClient.from('supplier_logs').insert([{ supplier_id, supplier_name, action_type, amount, details }]);
     }
@@ -1025,6 +1303,7 @@
           <h4 class="font-black text-sm text-indigo-950">${escapeHtml(s.name)}</h4>
           <p class="text-xs text-slate-600">التصنيف: ${escapeHtml(s.category || '--')} | الجوال: ${escapeHtml(s.phone || '--')}</p>
           <p class="text-xs text-slate-600">الرصيد الحالي: ${Number(s.balance || 0).toFixed(2)} ر.س</p>
+          <p class="text-xs text-slate-600">الهدف (Target): ${s.target_amount || 0} ${s.target_start_date ? `| من ${s.target_start_date} إلى ${s.target_end_date || '--'}` : ''}</p>
         </div>
         <div>
           <h5 class="font-bold text-xs text-slate-700 mb-2">سجل عمليات المورد</h5>
@@ -1143,6 +1422,7 @@
             <td class="p-3"><span class="px-2 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-[10px] font-bold">${roleName}</span></td>
             <td class="p-3">${d.manager_name || '--'}</td>
             <td class="p-3 font-bold text-amber-600">${d.sims_custody || 0}</td>
+            <td class="p-3 font-bold text-purple-600">${d.serial_custody || 0}</td>
             <td class="p-3 font-bold text-emerald-600">${d.sims_sold || 0}</td>
             <td class="p-3 font-bold">${d.wallet_balance || 0} ر.س</td>
             <td class="p-3">${d.target_amount || 0}</td>
@@ -1159,7 +1439,7 @@
     // جلب وعرض الطلبات المعلقة (لـ الإدارة و HR)
     async function fetchPendingRequests() {
       if (!supabaseClient) return;
-      const { data, error } = await supabaseClient.from('pending_requests').select('*').eq('status', 'pending');
+      const { data, error } = await supabaseClient.from('pending_requests').select('*').eq('status', 'pending').neq('request_type', 'إضافة عهدة سيريال');
       const section = document.getElementById('pendingRequestsSection');
       const tbody = document.getElementById('pendingRequestsTbody');
       
@@ -1206,8 +1486,8 @@
               sims_sold: del.sims_sold + payload.simsCount,
               wallet_balance: Number(del.wallet_balance) + payload.amount
             }).eq('id', payload.delegate_id);
-            await logFinancialEvent(payload.delegate_id, del.name, 'إضافة مبيعات', payload.amount, `بواسطة اعتماد طلب المدير: ${payload.simsCount} شريحة${payload.note ? ' | ملاحظة: ' + payload.note : ''}`);
-            await logOperationalEvent(payload.delegate_id, del.name, 'عملية بيع', `خصم ${payload.simsCount} شريحة من العهدة${payload.note ? ' | ملاحظة: ' + payload.note : ''}`);
+            await logFinancialEvent(payload.delegate_id, del.name, 'إضافة مبيعات', payload.amount, `بواسطة اعتماد طلب المدير: ${payload.simsCount} شريحة${payload.telecomCompany ? ' عبر شركة ' + payload.telecomCompany : ''}${payload.note ? ' | ملاحظة: ' + payload.note : ''}`);
+            await logOperationalEvent(payload.delegate_id, del.name, 'عملية بيع', `خصم ${payload.simsCount} شريحة من العهدة${payload.telecomCompany ? ' | شركة الاتصالات: ' + payload.telecomCompany : ''}${payload.note ? ' | ملاحظة: ' + payload.note : ''}`);
           } else if (payload.update_type === 'balance') {
             await supabaseClient.from('delegates').update({ wallet_balance: payload.newWallet }).eq('id', payload.delegate_id);
             if (payload.add > 0) await logFinancialEvent(payload.delegate_id, del.name, 'إيداع رصيد', payload.add, `اعتماد طلب مدير${payload.note ? ' | ملاحظة: ' + payload.note : ''}`);
@@ -1242,6 +1522,7 @@
       document.getElementById('delegateWelcome').innerText = `أهلاً بك، ${data.name}`;
       document.getElementById('delegateManagerDisplay').innerText = `المدير المباشر: ${data.manager_name || 'غير متوفر'}`;
       document.getElementById('delSimsCustodyDisplay').innerHTML = `${data.sims_custody || 0} <span class="text-xs font-normal">شريحة</span>`;
+      document.getElementById('delSerialCustodyDisplay').innerHTML = `${data.serial_custody || 0} <span class="text-xs font-normal">عهدة</span>`;
       document.getElementById('delWalletBalance').innerHTML = `${Number(data.wallet_balance || 0).toFixed(2)} <span class="text-xs font-normal">ر.س</span>`;
       document.getElementById('delTargetProgressText').innerText = data.target_progress || '0%';
 
@@ -1323,9 +1604,12 @@
       e.preventDefault();
 	        e.submitter.disabled = true;
       const delegateId = document.getElementById('adminSaleDelegateId').value;
+      const telecomCompany = document.getElementById('adminSaleTelecomCompany').value;
       const simsCount = parseInt(document.getElementById('adminSaleSimsCount').value) || 0;
       const amount = parseFloat(document.getElementById('adminSaleAmount').value) || 0;
       const note = document.getElementById('adminSaleNote').value.trim();
+
+      if (!telecomCompany) { alert('يرجى اختيار شركة الاتصالات المنفذ عليها البيع'); return; }
 
       const delegate = globalDelegatesList.find(d => String(d.id) === String(delegateId));
       if (!delegate) return;
@@ -1340,8 +1624,8 @@
           request_type: 'تسجيل مبيعات',
           manager_id: currentUser.id,
           manager_name: currentUser.name,
-          details_text: `تسجيل بيع ${simsCount} شريحة للمندوب ${delegate.name} بمبلغ ${amount} ر.س${note ? ' | ملاحظة: ' + note : ''}`,
-          payload_json: { delegate_id: delegateId, simsCount, amount, note, update_type: 'sales' },
+          details_text: `تسجيل بيع ${simsCount} شريحة عبر شركة ${telecomCompany} للمندوب ${delegate.name} بمبلغ ${amount} ر.س${note ? ' | ملاحظة: ' + note : ''}`,
+          payload_json: { delegate_id: delegateId, simsCount, amount, note, telecomCompany, update_type: 'sales' },
           status: 'pending'
         }]);
         alert("تم إرسال طلب تسجيل المبيعات للإدارة لاعتماده.");
@@ -1360,8 +1644,8 @@
           wallet_balance: newWallet
         }).eq('id', delegateId);
 
-        await logFinancialEvent(delegateId, delegate.name, 'إضافة مبيعات', amount, `تم تسجيل بيع ${simsCount} شريحة${note ? ' | ملاحظة: ' + note : ''}`);
-        await logOperationalEvent(delegateId, delegate.name, 'عملية بيع', `خصم ${simsCount} شريحة من العهدة${note ? ' | ملاحظة: ' + note : ''}`);
+        await logFinancialEvent(delegateId, delegate.name, 'إضافة مبيعات', amount, `تم تسجيل بيع ${simsCount} شريحة عبر شركة ${telecomCompany}${note ? ' | ملاحظة: ' + note : ''}`);
+        await logOperationalEvent(delegateId, delegate.name, 'عملية بيع', `خصم ${simsCount} شريحة من العهدة | شركة الاتصالات: ${telecomCompany}${note ? ' | ملاحظة: ' + note : ''}`);
 
         alert("تم تسجيل عملية البيع بنجاح!");
         e.target.reset();
@@ -1459,6 +1743,102 @@
       }
     }
 
+    // إضافة عهدة سيريال (منفصلة عن عهدة الشرائح) - ترسل من HR/الإدارة وتحتاج موافقة المدير المباشر للمندوب
+    async function handleAddSerialCustody(e) {
+      e.preventDefault();
+      e.submitter.disabled = true;
+      const delegateId = document.getElementById('serialCustodySelectDel').value;
+      const company = document.getElementById('serialCustodyCompany').value;
+      const amount = parseInt(document.getElementById('serialCustodyAmount').value) || 0;
+      const note = document.getElementById('serialCustodyNote').value.trim();
+
+      const delegate = globalDelegatesList.find(d => String(d.id) === String(delegateId));
+      if (!delegate) { alert('يرجى اختيار المندوب'); e.submitter.disabled = false; return; }
+      if (!company) { alert('يرجى اختيار شركة العهدة'); e.submitter.disabled = false; return; }
+      if (!amount || amount <= 0) { alert('يرجى إدخال عدد صحيح لعهدة السيريال'); e.submitter.disabled = false; return; }
+
+      if (!delegate.manager_id) {
+        alert('لا يمكن إرسال الطلب: هذا المندوب ليس لديه مدير مباشر معيّن لاعتماد الطلب.');
+        e.submitter.disabled = false;
+        return;
+      }
+
+      try {
+        await supabaseClient.from('pending_requests').insert([{
+          request_type: 'إضافة عهدة سيريال',
+          manager_id: delegate.manager_id,
+          manager_name: delegate.manager_name || '',
+          delegate_id: delegateId,
+          amount: amount,
+          details_text: `طلب إضافة عهدة سيريال للمندوب ${delegate.name} - شركة العهدة: ${company} - الكمية: ${amount}${note ? ' | ملاحظة: ' + note : ''} (مرسل من: ${currentUser.name})`,
+          payload_json: { delegate_id: delegateId, company, amount, note, requested_by_id: currentUser.id, requested_by_name: currentUser.name, update_type: 'serial_custody' },
+          status: 'pending'
+        }]);
+        alert('تم إرسال طلب عهدة السيريال إلى المدير المباشر للمندوب لاعتماده.');
+        e.target.reset();
+      } catch (err) {
+        console.error(err);
+        alert('فشل إرسال طلب عهدة السيريال');
+      } finally {
+        e.submitter.disabled = false;
+      }
+    }
+
+    // جلب طلبات عهدة السيريال الموجهة لهذا المدير المباشر تحديداً للاعتماد
+    async function fetchManagerSerialRequests() {
+      if (!supabaseClient || !currentUser) return;
+      const section = document.getElementById('managerSerialRequestsSection');
+      const tbody = document.getElementById('managerSerialRequestsTbody');
+      const { data, error } = await supabaseClient.from('pending_requests').select('*')
+        .eq('status', 'pending')
+        .eq('request_type', 'إضافة عهدة سيريال')
+        .eq('manager_id', String(currentUser.id));
+
+      if (error || !data || data.length === 0) {
+        if (section) section.classList.add('hidden');
+        return;
+      }
+
+      if (section) section.classList.remove('hidden');
+      if (tbody) {
+        tbody.innerHTML = '';
+        data.forEach(req => {
+          const p = req.payload_json || {};
+          const del = globalDelegatesList.find(d => String(d.id) === String(req.delegate_id));
+          tbody.innerHTML += `
+            <tr class="hover:bg-purple-50/50">
+              <td class="p-3 font-bold text-purple-900">${escapeHtml(del ? del.name : req.delegate_id)}</td>
+              <td class="p-3 text-slate-700">${escapeHtml(req.details_text)}</td>
+              <td class="p-3 text-center flex justify-center gap-2">
+                <button onclick="approveSerialCustodyRequest('${req.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg text-[10px] font-bold">موافقة واعتماد</button>
+                <button onclick="rejectRequest('${req.id}')" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-lg text-[10px] font-bold">رفض</button>
+              </td>
+            </tr>
+          `;
+        });
+      }
+    }
+
+    // اعتماد المدير المباشر لطلب عهدة السيريال وتنفيذه فعلياً
+    async function approveSerialCustodyRequest(requestId) {
+      if (!confirm('هل أنت متأكد من الموافقة على إضافة عهدة السيريال هذه؟')) return;
+      const { data: req, error } = await supabaseClient.from('pending_requests').select('*').eq('id', requestId).single();
+      if (error || !req) return;
+
+      const payload = req.payload_json || {};
+      const { data: del } = await supabaseClient.from('delegates').select('*').eq('id', payload.delegate_id).single();
+      if (del) {
+        const newSerialCustody = (Number(del.serial_custody) || 0) + Number(payload.amount || 0);
+        await supabaseClient.from('delegates').update({ serial_custody: newSerialCustody }).eq('id', payload.delegate_id);
+        await logOperationalEvent(payload.delegate_id, del.name, 'إضافة عهدة سيريال', `تمت الموافقة من المدير المباشر: إضافة ${payload.amount} عهدة سيريال - شركة العهدة: ${payload.company}${payload.note ? ' | ملاحظة: ' + payload.note : ''}`);
+      }
+
+      await supabaseClient.from('pending_requests').update({ status: 'approved' }).eq('id', requestId);
+      alert('تمت الموافقة على عهدة السيريال وتطبيقها بنجاح!');
+      fetchManagerSerialRequests();
+      fetchDelegatesDataForAdmin();
+    }
+
     function fillEditInputs() {
       const id = document.getElementById('editSelectDel').value;
       const d = globalDelegatesList.find(item => String(item.id) === String(id));
@@ -1467,6 +1847,7 @@
       document.getElementById('editDelPhone').value = d.phone || '';
       document.getElementById('editDelEmail').value = d.email || '';
       document.getElementById('editDelManager').value = d.manager_id || '';
+      document.getElementById('editDelRole').value = d.role || 'delegate';
     }
 
     async function handleUpdateDelegateData(e) {
@@ -1479,6 +1860,7 @@
       const email = document.getElementById('editDelEmail').value.trim();
       const password = document.getElementById('editDelPassword').value.trim();
       const managerId = document.getElementById('editDelManager').value;
+      const role = document.getElementById('editDelRole').value;
 
       let manager_name = '';
       if (managerId) {
@@ -1491,7 +1873,7 @@
         }
       }
 
-      let updateData = { name, phone, email, manager_id: managerId || null, manager_name };
+      let updateData = { name, phone, email, manager_id: managerId || null, manager_name, role };
       if (password) updateData.password = password;
 
       if (currentUser && currentUser.role === 'manager') {
@@ -1678,7 +2060,7 @@
         <div class="bg-slate-50 p-4 rounded-2xl space-y-2 border">
           <h4 class="font-black text-sm text-indigo-950">${d.name}</h4>
           <p class="text-xs text-slate-600">الجوال: ${d.phone || '--'} | البريد: ${d.email || '--'} | الصلاحية: ${d.role}</p>
-          <p class="text-xs text-slate-600">العهدة الحالية: ${d.sims_custody || 0} | المبيعات: ${d.sims_sold || 0} | الرصيد: ${d.wallet_balance || 0} ر.س</p>
+          <p class="text-xs text-slate-600">عهدة الشرائح: ${d.sims_custody || 0} | عهدة السيريال: ${d.serial_custody || 0} | المبيعات: ${d.sims_sold || 0} | الرصيد: ${d.wallet_balance || 0} ر.س</p>
         </div>
         <div>
           <h5 class="font-bold text-xs text-slate-700 mb-2">العمليات المالية</h5>

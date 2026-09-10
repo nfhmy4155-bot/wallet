@@ -123,7 +123,7 @@
             <thead class="bg-amber-100 text-amber-900 font-bold border-b">
               <tr>
                 <th class="p-3">نوع الطلب</th>
-                <th class="p-3">المرسل (المدير)</th>
+                <th class="p-3">المرسل </th>
                 <th class="p-3">تفاصيل البيانات المطلوبة</th>
                 <th class="p-3 text-center">الإجراء</th>
               </tr>
@@ -202,6 +202,10 @@
             <label class="block text-xs font-bold text-slate-600 mb-1">المبلغ المالي المضاف (ر.س)</label>
             <input type="number" id="adminSaleAmount" step="0.01" min="0" required placeholder="0.00" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
           </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">ملاحظة (اختياري)</label>
+            <input type="text" id="adminSaleNote" placeholder="أي ملاحظة إضافية" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+          </div>
           <div class="flex items-end">
             <button type="submit" id="saleBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md">
               تسجيل عملية البيع
@@ -233,6 +237,10 @@
               <label class="block text-xs font-bold text-slate-600 mb-1">خصم رصيد (-)</label>
               <input type="number" id="deductBalance" step="0.01" placeholder="0.00" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
             </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">ملاحظة (اختياري)</label>
+              <input type="text" id="balanceNote" placeholder="أي ملاحظة إضافية" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+            </div>
             <button type="submit" id="balanceBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition">
               تحديث الرصيد
             </button>
@@ -258,6 +266,10 @@
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">سحب/خصم شرائح (-)</label>
               <input type="number" id="deductCustodySims" min="0" placeholder="عدد الشرائح" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">ملاحظة (اختياري)</label>
+              <input type="text" id="custodyNote" placeholder="أي ملاحظة إضافية" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
             </div>
             <button type="submit" id="custodyBtn" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl text-xs transition">
               تحديث عهدة الشرائح
@@ -348,6 +360,114 @@
 
       </div>
 
+      <!-- إدارة الموردين -->
+      <div id="suppliersSection" class="space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <!-- إضافة مورد جديد -->
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+            <h3 class="font-bold text-sm text-slate-800 border-b pb-3 flex items-center gap-2">
+              <i class="fa-solid fa-truck-fast text-indigo-600"></i> إضافة مورد جديد
+            </h3>
+            <form onsubmit="handleAddSupplier(event)" class="space-y-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">اسم المورد</label>
+                <input type="text" id="newSupplierName" required placeholder="اسم الشركة أو المورد" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">تصنيف المورد</label>
+                <select id="newSupplierCategory" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+                  <option value="">-- اختر التصنيف --</option>
+                  <option value="مورد شرائح">مورد شرائح</option>
+                  <option value="مورد أجهزة">مورد أجهزة</option>
+                  <option value="شركة اتصالات">شركة اتصالات</option>
+                  <option value="خدمات لوجستية">خدمات لوجستية</option>
+                  <option value="أخرى">أخرى</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">رقم الجوال / التواصل</label>
+                <input type="text" id="newSupplierPhone" placeholder="05xxxxxxxx" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">البريد الإلكتروني (لتسجيل الدخول)</label>
+                <input type="email" id="newSupplierEmail" required placeholder="supplier@domain.com" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">كلمة السر (لتسجيل الدخول)</label>
+                <input type="password" id="newSupplierPassword" required placeholder="••••••••" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">الرصيد الابتدائي (ر.س)</label>
+                <input type="number" id="newSupplierBalance" step="0.01" value="0" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">ملاحظة (اختياري)</label>
+                <input type="text" id="newSupplierNote" placeholder="أي ملاحظة إضافية" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              </div>
+              <button type="submit" id="addSupplierBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition">
+                حفظ المورد
+              </button>
+            </form>
+          </div>
+
+          <!-- إدارة رصيد المورد -->
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+            <h3 class="font-bold text-sm text-slate-800 border-b pb-3 flex items-center gap-2">
+              <i class="fa-solid fa-wallet text-emerald-600"></i> إدارة رصيد المورد
+            </h3>
+            <form onsubmit="handleManageSupplierBalance(event)" class="space-y-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">اختر المورد</label>
+                <select id="supplierSelectBalance" required class="supplier-select w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+                  <option value="">-- اختر المورد --</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">إضافة رصيد (+)</label>
+                <input type="number" id="addSupplierBalance" step="0.01" placeholder="0.00" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">خصم رصيد (-)</label>
+                <input type="number" id="deductSupplierBalance" step="0.01" placeholder="0.00" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">ملاحظة (اختياري)</label>
+                <input type="text" id="supplierBalanceNote" placeholder="أي ملاحظة إضافية" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+              </div>
+              <button type="submit" id="supplierBalanceBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition">
+                تحديث رصيد المورد
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- قائمة الموردين -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+          <div class="flex justify-between items-center border-b pb-3">
+            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-truck-fast text-indigo-600"></i> قائمة الموردين
+            </h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+              <thead class="bg-slate-50 text-slate-500 font-bold border-b">
+                <tr>
+                  <th class="p-3">اسم المورد</th>
+                  <th class="p-3">التصنيف</th>
+                  <th class="p-3">رقم الجوال</th>
+                  <th class="p-3">البريد الإلكتروني</th>
+                  <th class="p-3">الرصيد الحالي</th>
+                  <th class="p-3 text-center">السجل</th>
+                  <th class="p-3 text-center">تصدير</th>
+                </tr>
+              </thead>
+              <tbody id="suppliersListTbody" class="divide-y divide-slate-100 font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- قائمة المناديب التابعين -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
         <div class="flex justify-between items-center border-b pb-3">
@@ -425,6 +545,10 @@
               <label class="block text-xs font-bold text-slate-600 mb-1">المبلغ المراد تحويله (ر.س)</label>
               <input type="number" id="transferAmount" step="0.01" min="0.01" required placeholder="0.00" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
             </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">ملاحظة (اختياري)</label>
+              <input type="text" id="transferNote" placeholder="أي ملاحظة إضافية" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
+            </div>
             <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl text-xs transition shadow-md">
               تأكيد التحويل
             </button>
@@ -456,6 +580,10 @@
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">سبب السحب</label>
               <textarea id="withdrawReason" rows="2" required placeholder="اكتب سبب الطلب..." class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">ملاحظة (اختياري)</label>
+              <input type="text" id="withdrawNote" placeholder="أي ملاحظة إضافية" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none">
             </div>
             <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-xs transition shadow-md">
               إرسال طلب السحب
@@ -504,6 +632,52 @@
               <tbody id="delOperationalLogsTbody" class="divide-y divide-slate-100"></tbody>
             </table>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- لوحة المورد الشخصية -->
+    <div id="supplierPanel" class="hidden space-y-6">
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 flex flex-wrap justify-between items-center gap-4">
+        <div>
+          <h2 id="supplierWelcome" class="text-lg font-black text-indigo-900 mb-1">أهلاً بك</h2>
+          <p id="supplierCategoryDisplay" class="text-xs text-indigo-600 font-bold mb-1">التصنيف: --</p>
+          <p id="supplierPhoneDisplay" class="text-xs text-slate-500">رقم التواصل: --</p>
+        </div>
+        <button onclick="downloadMySupplierLogs()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5">
+          <i class="fa-solid fa-file-excel"></i> تحميل سجل العمليات
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="bg-emerald-800 text-white p-6 rounded-2xl shadow-sm">
+          <p class="text-xs text-emerald-200 font-bold">الرصيد الحالي</p>
+          <h3 id="supplierBalanceDisplay" class="text-3xl font-black mt-2">0.00 <span class="text-xs font-normal">ر.س</span></h3>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+          <p class="text-xs text-slate-500 font-bold">حالة الحساب</p>
+          <h3 class="text-2xl font-black text-indigo-600 mt-2">مورد نشط</h3>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-receipt text-emerald-600"></i> سجل العمليات المالية الخاصة بي
+          </h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-right text-xs">
+            <thead class="bg-slate-50 text-slate-500 font-bold border-b">
+              <tr>
+                <th class="p-2">النوع</th>
+                <th class="p-2">المبلغ</th>
+                <th class="p-2">التفاصيل</th>
+                <th class="p-2">التاريخ</th>
+              </tr>
+            </thead>
+            <tbody id="supplierLogsTbody" class="divide-y divide-slate-100"></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -562,9 +736,18 @@
         });
       }
     });
-
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
     async function handleLogin(e) {
       e.preventDefault();
+	        e.submitter.disabled = true;
       const email = document.getElementById('loginEmail').value.trim();
       const password = document.getElementById('loginPassword').value.trim();
       const btn = document.getElementById('btnLoginSubmit');
@@ -580,27 +763,49 @@
       try {
         if (!supabaseClient) throw new Error("مكتبة Supabase غير متصلة");
 
-        const { data, error } = await supabaseClient
+        // نبحث أولاً في جدول المناديب والإدارة
+        const { data: delegateData, error: delegateError } = await supabaseClient
           .from('delegates')
           .select('*')
           .eq('email', email)
           .single();
 
-        if (error || !data) {
+        if (delegateData && !delegateError) {
+          if (delegateData.password !== password) {
+            alert("كلمة المرور غير صحيحة");
+            resetLoginBtn(btn);
+            return;
+          }
+          delegateData.accountType = 'delegate';
+          currentUser = delegateData;
+          localStorage.setItem('currentUser', JSON.stringify(delegateData));
+          initAppWithUser(delegateData);
+          return;
+        }
+
+        // إذا لم يوجد كمندوب، نبحث في جدول الموردين
+        const { data: supplierData, error: supplierError } = await supabaseClient
+          .from('suppliers')
+          .select('*')
+          .eq('email', email)
+          .single();
+
+        if (supplierError || !supplierData) {
           alert("البريد الإلكتروني غير مسجل في النظام");
           resetLoginBtn(btn);
           return;
         }
 
-        if (data.password !== password) {
+        if (supplierData.password !== password) {
           alert("كلمة المرور غير صحيحة");
           resetLoginBtn(btn);
           return;
         }
 
-        currentUser = data;
-        localStorage.setItem('currentUser', JSON.stringify(data));
-        initAppWithUser(data);
+        supplierData.accountType = 'supplier';
+        currentUser = supplierData;
+        localStorage.setItem('currentUser', JSON.stringify(supplierData));
+        initAppWithUser(supplierData);
 
       } catch (err) {
         console.error(err);
@@ -622,7 +827,16 @@
 
     async function initAppWithUser(user) {
       document.getElementById('loginScreen').classList.add('hidden');
-      
+
+      if (user.accountType === 'supplier') {
+        document.getElementById('userRoleBadge').innerText = "مورد";
+        document.getElementById('adminPanel').classList.add('hidden');
+        document.getElementById('delegatePanel').classList.add('hidden');
+        document.getElementById('supplierPanel').classList.remove('hidden');
+        await fetchSupplierPersonalData(user.id);
+        return;
+      }
+
       let roleText = "مندوب مبيعات";
       if (user.role === 'admin') roleText = "مشرف / إدارة عامة";
       else if (user.role === 'manager') roleText = "مدير مباشر";
@@ -650,15 +864,21 @@
 
           document.getElementById('custodyTitle').innerHTML = `<i class="fa-solid fa-sim-card text-amber-600"></i> إرسال طلب تعديل عهدة (يحتاج اعتماد الإدارة)`;
           document.getElementById('custodyBtn').innerText = "إرسال طلب تحديث العهدة";
+
+          // إدارة الموردين خاصة بالإدارة والموارد البشرية فقط
+          const suppliersSection = document.getElementById('suppliersSection');
+          if (suppliersSection) suppliersSection.classList.add('hidden');
         } else {
           // الإدارة والـ HR تظهر لهم لوحة متابعة الطلبات المعلقة
           await fetchPendingRequests();
         }
 
         await fetchDelegatesDataForAdmin();
+        if (user.role !== 'manager') await fetchSuppliersDataForAdmin();
       } else {
         document.getElementById('adminPanel').classList.add('hidden');
         document.getElementById('delegatePanel').classList.remove('hidden');
+        document.getElementById('supplierPanel').classList.add('hidden');
         await fetchDelegatePersonalData(user.id);
       }
     }
@@ -673,6 +893,198 @@
       globalDelegatesList = data || [];
       updateAdminDashboardUI();
     }
+
+    // ============ الموردين ============
+    let globalSuppliersList = [];
+
+    async function fetchSuppliersDataForAdmin() {
+      if (!supabaseClient) return;
+      const { data, error } = await supabaseClient.from('suppliers').select('*').order('created_at', { ascending: false });
+      if (error) {
+        console.error(error);
+        return;
+      }
+      globalSuppliersList = data || [];
+
+      const selects = document.querySelectorAll('.supplier-select');
+      selects.forEach(sel => {
+        if (!sel) return;
+        const currentVal = sel.value;
+        sel.innerHTML = '<option value="">-- اختر المورد --</option>';
+        globalSuppliersList.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.id;
+          opt.textContent = `${s.name} (${s.category || '--'})`;
+          sel.appendChild(opt);
+        });
+        sel.value = currentVal;
+      });
+
+      const tbody = document.getElementById('suppliersListTbody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        globalSuppliersList.forEach(s => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-50';
+          tr.innerHTML = `
+            <td class="p-3 font-bold text-indigo-900">${escapeHtml(s.name)}</td>
+            <td class="p-3">${escapeHtml(s.category || '--')}</td>
+            <td class="p-3">${escapeHtml(s.phone || '--')}</td>
+            <td class="p-3">${escapeHtml(s.email || '--')}</td>
+            <td class="p-3 font-bold ${Number(s.balance) < 0 ? 'text-rose-600' : 'text-emerald-600'}">${Number(s.balance || 0).toFixed(2)} ر.س</td>
+            <td class="p-3 text-center">
+              <button onclick="openSupplierReport('${s.id}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold">عرض السجل</button>
+            </td>
+            <td class="p-3 text-center">
+              <button onclick="downloadSupplierExcel('${s.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold">Excel</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    async function handleAddSupplier(e) {
+      e.preventDefault();
+      e.submitter.disabled = true;
+      if (currentUser && currentUser.role === 'manager') {
+        alert("إضافة الموردين متاحة فقط للإدارة والموارد البشرية.");
+        return;
+      }
+      const name = document.getElementById('newSupplierName').value.trim();
+      const category = document.getElementById('newSupplierCategory').value;
+      const phone = document.getElementById('newSupplierPhone').value.trim();
+      const email = document.getElementById('newSupplierEmail').value.trim();
+      const password = document.getElementById('newSupplierPassword').value.trim();
+      const balance = parseFloat(document.getElementById('newSupplierBalance').value) || 0;
+      const note = document.getElementById('newSupplierNote').value.trim();
+
+      try {
+        const { data, error } = await supabaseClient.from('suppliers').insert([{ name, category, phone, email, password, balance }]).select().single();
+        if (error) throw error;
+        if (balance !== 0 && data) {
+          await logSupplierEvent(data.id, data.name, 'رصيد ابتدائي', balance, `رصيد ابتدائي عند إضافة المورد${note ? ' | ملاحظة: ' + note : ''}`);
+        }
+        alert("تم إضافة المورد بنجاح!");
+        e.target.reset();
+        fetchSuppliersDataForAdmin();
+      } catch (err) {
+        console.error(err);
+        alert("فشل إضافة المورد، تأكد من البيانات المدخلة");
+      }
+    }
+
+    async function handleManageSupplierBalance(e) {
+      e.preventDefault();
+      e.submitter.disabled = true;
+      if (currentUser && currentUser.role === 'manager') {
+        alert("إدارة رصيد الموردين متاحة فقط للإدارة والموارد البشرية.");
+        return;
+      }
+      const supplierId = document.getElementById('supplierSelectBalance').value;
+      const add = parseFloat(document.getElementById('addSupplierBalance').value) || 0;
+      const deduct = parseFloat(document.getElementById('deductSupplierBalance').value) || 0;
+      const note = document.getElementById('supplierBalanceNote').value.trim();
+
+      const supplier = globalSuppliersList.find(s => String(s.id) === String(supplierId));
+      if (!supplier) { alert('يرجى اختيار المورد'); return; }
+
+      const diff = add - deduct;
+      const newBalance = (Number(supplier.balance) || 0) + diff;
+
+      try {
+        await supabaseClient.from('suppliers').update({ balance: newBalance }).eq('id', supplierId);
+        if (add > 0) await logSupplierEvent(supplierId, supplier.name, 'إيداع رصيد', add, `إضافة رصيد يدوي${note ? ' | ملاحظة: ' + note : ''}`);
+        if (deduct > 0) await logSupplierEvent(supplierId, supplier.name, 'خصم رصيد', deduct, `خصم رصيد يدوي${note ? ' | ملاحظة: ' + note : ''}`);
+
+        alert("تم تحديث رصيد المورد بنجاح!");
+        e.target.reset();
+        fetchSuppliersDataForAdmin();
+      } catch (err) {
+        console.error(err);
+        alert("فشل تحديث رصيد المورد");
+      }
+    }
+
+    async function logSupplierEvent(supplier_id, supplier_name, action_type, amount, details) {
+      await supabaseClient.from('supplier_logs').insert([{ supplier_id, supplier_name, action_type, amount, details }]);
+    }
+
+    async function openSupplierReport(supplierId) {
+      const s = globalSuppliersList.find(item => String(item.id) === String(supplierId));
+      if (!s) return;
+
+      const modal = document.getElementById('reportModal');
+      const content = document.getElementById('reportContent');
+      modal.classList.remove('hidden');
+
+      const { data: logs } = await supabaseClient.from('supplier_logs').select('*').eq('supplier_id', String(supplierId)).order('created_at', { ascending: false });
+
+      content.innerHTML = `
+        <div class="bg-slate-50 p-4 rounded-2xl space-y-2 border">
+          <h4 class="font-black text-sm text-indigo-950">${escapeHtml(s.name)}</h4>
+          <p class="text-xs text-slate-600">التصنيف: ${escapeHtml(s.category || '--')} | الجوال: ${escapeHtml(s.phone || '--')}</p>
+          <p class="text-xs text-slate-600">الرصيد الحالي: ${Number(s.balance || 0).toFixed(2)} ر.س</p>
+        </div>
+        <div>
+          <h5 class="font-bold text-xs text-slate-700 mb-2">سجل عمليات المورد</h5>
+          <table class="w-full text-right text-xs border"><thead class="bg-slate-100"><tr><th class="p-2">النوع</th><th class="p-2">المبلغ</th><th class="p-2">التفاصيل</th><th class="p-2">التاريخ</th></tr></thead><tbody>
+          ${(logs || []).map(l => `<tr><td class="p-2 border">${escapeHtml(l.action_type)}</td><td class="p-2 border">${l.amount}</td><td class="p-2 border">${escapeHtml(l.details)}</td><td class="p-2 border">${new Date(l.created_at).toLocaleDateString()}</td></tr>`).join('')}
+          </tbody></table>
+        </div>
+      `;
+    }
+
+    async function downloadSupplierExcel(supplierId) {
+      const s = globalSuppliersList.find(item => String(item.id) === String(supplierId));
+      const { data } = await supabaseClient.from('supplier_logs').select('*').eq('supplier_id', String(supplierId));
+      if (!data || data.length === 0) {
+        alert("لا توجد بيانات للتصدير");
+        return;
+      }
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "SupplierLogs");
+      XLSX.writeFile(workbook, `Supplier_${s ? s.name : supplierId}_Logs.xlsx`);
+    }
+    async function fetchSupplierPersonalData(supplierId) {
+      if (!supabaseClient) return;
+      const { data, error } = await supabaseClient.from('suppliers').select('*').eq('id', supplierId).single();
+      if (error || !data) return;
+
+      currentUser = { ...data, accountType: 'supplier' };
+      document.getElementById('supplierWelcome').innerText = `أهلاً بك، ${data.name}`;
+      document.getElementById('supplierCategoryDisplay').innerText = `التصنيف: ${data.category || '--'}`;
+      document.getElementById('supplierPhoneDisplay').innerText = `رقم التواصل: ${data.phone || '--'}`;
+      document.getElementById('supplierBalanceDisplay').innerHTML = `${Number(data.balance || 0).toFixed(2)} <span class="text-xs font-normal">ر.س</span>`;
+
+      fetchSupplierLogs(supplierId);
+    }
+
+    async function fetchSupplierLogs(supplierId) {
+      const { data: logs } = await supabaseClient.from('supplier_logs').select('*').eq('supplier_id', String(supplierId)).order('created_at', { ascending: false }).limit(20);
+      const tbody = document.getElementById('supplierLogsTbody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        (logs || []).forEach(log => {
+          tbody.innerHTML += `<tr><td class="p-2">${escapeHtml(log.action_type)}</td><td class="p-2">${log.amount} ر.س</td><td class="p-2">${escapeHtml(log.details)}</td><td class="p-2">${new Date(log.created_at).toLocaleDateString()}</td></tr>`;
+        });
+      }
+    }
+
+    async function downloadMySupplierLogs() {
+      if (!currentUser || currentUser.accountType !== 'supplier') return;
+      const { data } = await supabaseClient.from('supplier_logs').select('*').eq('supplier_id', String(currentUser.id));
+      if (!data || data.length === 0) {
+        alert("لا توجد بيانات للتصدير");
+        return;
+      }
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "MySupplierLogs");
+      XLSX.writeFile(workbook, `My_Supplier_Logs.xlsx`);
+    }
+    // ============ نهاية قسم الموردين ============
 
     function updateAdminDashboardUI() {
       let filteredList = globalDelegatesList;
@@ -794,16 +1206,16 @@
               sims_sold: del.sims_sold + payload.simsCount,
               wallet_balance: Number(del.wallet_balance) + payload.amount
             }).eq('id', payload.delegate_id);
-            await logFinancialEvent(payload.delegate_id, del.name, 'إضافة مبيعات', payload.amount, `بواسطة اعتماد طلب المدير: ${payload.simsCount} شريحة`);
-            await logOperationalEvent(payload.delegate_id, del.name, 'عملية بيع', `خصم ${payload.simsCount} شريحة من العهدة`);
+            await logFinancialEvent(payload.delegate_id, del.name, 'إضافة مبيعات', payload.amount, `بواسطة اعتماد طلب المدير: ${payload.simsCount} شريحة${payload.note ? ' | ملاحظة: ' + payload.note : ''}`);
+            await logOperationalEvent(payload.delegate_id, del.name, 'عملية بيع', `خصم ${payload.simsCount} شريحة من العهدة${payload.note ? ' | ملاحظة: ' + payload.note : ''}`);
           } else if (payload.update_type === 'balance') {
             await supabaseClient.from('delegates').update({ wallet_balance: payload.newWallet }).eq('id', payload.delegate_id);
-            if (payload.add > 0) await logFinancialEvent(payload.delegate_id, del.name, 'إيداع رصيد', payload.add, 'اعتماد طلب مدير');
-            if (payload.deduct > 0) await logFinancialEvent(payload.delegate_id, del.name, 'خصم رصيد', payload.deduct, 'اعتماد طلب مدير');
+            if (payload.add > 0) await logFinancialEvent(payload.delegate_id, del.name, 'إيداع رصيد', payload.add, `اعتماد طلب مدير${payload.note ? ' | ملاحظة: ' + payload.note : ''}`);
+            if (payload.deduct > 0) await logFinancialEvent(payload.delegate_id, del.name, 'خصم رصيد', payload.deduct, `اعتماد طلب مدير${payload.note ? ' | ملاحظة: ' + payload.note : ''}`);
           } else if (payload.update_type === 'custody') {
             await supabaseClient.from('delegates').update({ sims_custody: payload.newCustody }).eq('id', payload.delegate_id);
-            if (payload.addSims > 0) await logOperationalEvent(payload.delegate_id, del.name, 'إضافة عهدة شرائح', `اعتماد طلب مدير: إضافة ${payload.addSims} شريحة`);
-            if (payload.deductSims > 0) await logOperationalEvent(payload.delegate_id, del.name, 'سحب عهدة شرائح', `اعتماد طلب مدير: سحب ${payload.deductSims} شريحة`);
+            if (payload.addSims > 0) await logOperationalEvent(payload.delegate_id, del.name, 'إضافة عهدة شرائح', `اعتماد طلب مدير: إضافة ${payload.addSims} شريحة${payload.note ? ' | ملاحظة: ' + payload.note : ''}`);
+            if (payload.deductSims > 0) await logOperationalEvent(payload.delegate_id, del.name, 'سحب عهدة شرائح', `اعتماد طلب مدير: سحب ${payload.deductSims} شريحة${payload.note ? ' | ملاحظة: ' + payload.note : ''}`);
           }
         }
       }
@@ -858,6 +1270,7 @@
 
     async function handleCreateUser(e) {
       e.preventDefault();
+	        e.submitter.disabled = true;
       const name = document.getElementById('newUserName').value.trim();
       const phone = document.getElementById('newUserPhone').value.trim();
       const email = document.getElementById('newUserEmail').value.trim();
@@ -908,9 +1321,11 @@
 
     async function handleAdminRecordSale(e) {
       e.preventDefault();
+	        e.submitter.disabled = true;
       const delegateId = document.getElementById('adminSaleDelegateId').value;
       const simsCount = parseInt(document.getElementById('adminSaleSimsCount').value) || 0;
       const amount = parseFloat(document.getElementById('adminSaleAmount').value) || 0;
+      const note = document.getElementById('adminSaleNote').value.trim();
 
       const delegate = globalDelegatesList.find(d => String(d.id) === String(delegateId));
       if (!delegate) return;
@@ -925,8 +1340,8 @@
           request_type: 'تسجيل مبيعات',
           manager_id: currentUser.id,
           manager_name: currentUser.name,
-          details_text: `تسجيل بيع ${simsCount} شريحة للمندوب ${delegate.name} بمبلغ ${amount} ر.س`,
-          payload_json: { delegate_id: delegateId, simsCount, amount, update_type: 'sales' },
+          details_text: `تسجيل بيع ${simsCount} شريحة للمندوب ${delegate.name} بمبلغ ${amount} ر.س${note ? ' | ملاحظة: ' + note : ''}`,
+          payload_json: { delegate_id: delegateId, simsCount, amount, note, update_type: 'sales' },
           status: 'pending'
         }]);
         alert("تم إرسال طلب تسجيل المبيعات للإدارة لاعتماده.");
@@ -945,8 +1360,8 @@
           wallet_balance: newWallet
         }).eq('id', delegateId);
 
-        await logFinancialEvent(delegateId, delegate.name, 'إضافة مبيعات', amount, `تم تسجيل بيع ${simsCount} شريحة`);
-        await logOperationalEvent(delegateId, delegate.name, 'عملية بيع', `خصم ${simsCount} شريحة من العهدة`);
+        await logFinancialEvent(delegateId, delegate.name, 'إضافة مبيعات', amount, `تم تسجيل بيع ${simsCount} شريحة${note ? ' | ملاحظة: ' + note : ''}`);
+        await logOperationalEvent(delegateId, delegate.name, 'عملية بيع', `خصم ${simsCount} شريحة من العهدة${note ? ' | ملاحظة: ' + note : ''}`);
 
         alert("تم تسجيل عملية البيع بنجاح!");
         e.target.reset();
@@ -959,9 +1374,11 @@
 
     async function handleManageBalance(e) {
       e.preventDefault();
+	        e.submitter.disabled = true;
       const delegateId = document.getElementById('balanceSelectDel').value;
       const add = parseFloat(document.getElementById('addBalance').value) || 0;
       const deduct = parseFloat(document.getElementById('deductBalance').value) || 0;
+      const note = document.getElementById('balanceNote').value.trim();
 
       const delegate = globalDelegatesList.find(d => String(d.id) === String(delegateId));
       if (!delegate) return;
@@ -974,8 +1391,8 @@
           request_type: 'تعديل رصيد',
           manager_id: currentUser.id,
           manager_name: currentUser.name,
-          details_text: `تعديل رصيد المندوب ${delegate.name}: إضافة (${add}) - خصم (${deduct})`,
-          payload_json: { delegate_id: delegateId, add, deduct, newWallet, update_type: 'balance' },
+          details_text: `تعديل رصيد المندوب ${delegate.name}: إضافة (${add}) - خصم (${deduct})${note ? ' | ملاحظة: ' + note : ''}`,
+          payload_json: { delegate_id: delegateId, add, deduct, newWallet, note, update_type: 'balance' },
           status: 'pending'
         }]);
         alert("تم إرسال طلب تعديل الرصيد للإدارة لاعتماده.");
@@ -985,8 +1402,8 @@
 
       try {
         await supabaseClient.from('delegates').update({ wallet_balance: newWallet }).eq('id', delegateId);
-        if (add > 0) await logFinancialEvent(delegateId, delegate.name, 'إيداع رصيد', add, 'إضافة رصيد يدوي');
-        if (deduct > 0) await logFinancialEvent(delegateId, delegate.name, 'خصم رصيد', deduct, 'خصم رصيد يدوي');
+        if (add > 0) await logFinancialEvent(delegateId, delegate.name, 'إيداع رصيد', add, `إضافة رصيد يدوي${note ? ' | ملاحظة: ' + note : ''}`);
+        if (deduct > 0) await logFinancialEvent(delegateId, delegate.name, 'خصم رصيد', deduct, `خصم رصيد يدوي${note ? ' | ملاحظة: ' + note : ''}`);
 
         alert("تم تحديث الرصيد بنجاح!");
         e.target.reset();
@@ -999,9 +1416,11 @@
 
     async function handleManageCustody(e) {
       e.preventDefault();
+	        e.submitter.disabled = true;
       const delegateId = document.getElementById('custodySelectDel').value;
       const addSims = parseInt(document.getElementById('addCustodySims').value) || 0;
       const deductSims = parseInt(document.getElementById('deductCustodySims').value) || 0;
+      const note = document.getElementById('custodyNote').value.trim();
 
       const delegate = globalDelegatesList.find(d => String(d.id) === String(delegateId));
       if (!delegate) return;
@@ -1017,8 +1436,8 @@
           request_type: 'تعديل عهدة',
           manager_id: currentUser.id,
           manager_name: currentUser.name,
-          details_text: `تعديل عهدة المندوب ${delegate.name}: إضافة (${addSims}) - سحب (${deductSims})`,
-          payload_json: { delegate_id: delegateId, addSims, deductSims, newCustody, update_type: 'custody' },
+          details_text: `تعديل عهدة المندوب ${delegate.name}: إضافة (${addSims}) - سحب (${deductSims})${note ? ' | ملاحظة: ' + note : ''}`,
+          payload_json: { delegate_id: delegateId, addSims, deductSims, newCustody, note, update_type: 'custody' },
           status: 'pending'
         }]);
         alert("تم إرسال طلب تعديل العهدة للإدارة لاعتماده.");
@@ -1028,8 +1447,8 @@
 
       try {
         await supabaseClient.from('delegates').update({ sims_custody: newCustody }).eq('id', delegateId);
-        if (addSims > 0) await logOperationalEvent(delegateId, delegate.name, 'إضافة عهدة شرائح', `إضافة ${addSims} شريحة`);
-        if (deductSims > 0) await logOperationalEvent(delegateId, delegate.name, 'سحب عهدة شرائح', `سحب ${deductSims} شريحة`);
+        if (addSims > 0) await logOperationalEvent(delegateId, delegate.name, 'إضافة عهدة شرائح', `إضافة ${addSims} شريحة${note ? ' | ملاحظة: ' + note : ''}`);
+        if (deductSims > 0) await logOperationalEvent(delegateId, delegate.name, 'سحب عهدة شرائح', `سحب ${deductSims} شريحة${note ? ' | ملاحظة: ' + note : ''}`);
 
         alert("تم تحديث عهدة الشرائح بنجاح!");
         e.target.reset();
@@ -1052,6 +1471,7 @@
 
     async function handleUpdateDelegateData(e) {
       e.preventDefault();
+	        e.submitter.disabled = true;
       const id = document.getElementById('editSelectDel').value;
       if (!id) return;
       const name = document.getElementById('editDelName').value.trim();
@@ -1128,6 +1548,7 @@
 
     async function handleSetTarget(e) {
       e.preventDefault();
+	        e.submitter.disabled = true;
       if (currentUser && currentUser.role === 'manager') {
         alert("تحديد التارقت متاح فقط للإدارة والموارد البشرية.");
         return;
@@ -1160,8 +1581,10 @@
 
     async function handleTransferBalance(e) {
       e.preventDefault();
+	        e.submitter.disabled = true;
       const recipientEmail = document.getElementById('transferRecipientEmail').value.trim();
       const amount = parseFloat(document.getElementById('transferAmount').value) || 0;
+      const note = document.getElementById('transferNote').value.trim();
 
       if (recipientEmail === currentUser.email) {
         alert("لا يمكنك تحويل رصيد لنفسك!");
@@ -1186,8 +1609,8 @@
         await supabaseClient.from('delegates').update({ wallet_balance: newSenderWallet }).eq('id', currentUser.id);
         await supabaseClient.from('delegates').update({ wallet_balance: newRecWallet }).eq('id', recData.id);
 
-        await logFinancialEvent(currentUser.id, currentUser.name, 'تحويل صادر', amount, `إلى المندوب ${recData.name}`);
-        await logFinancialEvent(recData.id, recData.name, 'تحويل وارد', amount, `من المندوب ${currentUser.name}`);
+        await logFinancialEvent(currentUser.id, currentUser.name, 'تحويل صادر', amount, `إلى المندوب ${recData.name}${note ? ' | ملاحظة: ' + note : ''}`);
+        await logFinancialEvent(recData.id, recData.name, 'تحويل وارد', amount, `من المندوب ${currentUser.name}${note ? ' | ملاحظة: ' + note : ''}`);
 
         alert("تم تحويل الرصيد بنجاح!");
         currentUser.wallet_balance = newSenderWallet;
@@ -1200,36 +1623,38 @@
       }
     }
 
-    async function handleWithdrawalRequest(e) {
+     async function handleWithdrawalRequest(e) {
       e.preventDefault();
+	        e.submitter.disabled = true;
+      if (!supabaseClient || !currentUser) return alert('يرجى تسجيل الدخول أولاً');
       const amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
       const method = document.getElementById('withdrawMethod').value;
-      const date = document.getElementById('withdrawDate').value;
       const reason = document.getElementById('withdrawReason').value.trim();
+      const note = document.getElementById('withdrawNote').value.trim();
 
-      if ((currentUser.wallet_balance || 0) < amount) {
-        alert("رصيد محفظتك غير كافٍ لتقديم طلب السحب!");
-        return;
-      }
+      if (!amount || amount <= 0) return alert('أدخل مبلغاً صحيحاً');
+      if (!method) return alert('اختر طريقة السحب');
 
-      try {
-        const newWallet = (Number(currentUser.wallet_balance) || 0) - amount;
-        await supabaseClient.from('delegates').update({ wallet_balance: newWallet }).eq('id', currentUser.id);
-        
-        await logFinancialEvent(currentUser.id, currentUser.name, 'طلب سحب أموال', amount, `الطريقة: ${method} - السبب: ${reason}`);
+      const wallet = Number(currentUser.wallet_balance) || 0;
+      if (wallet < amount) return alert('رصيد محفظتك الحالي غير كافٍ — لا يمكن تقديم طلب سحب بهذا المبلغ');
 
-        alert("تم إرسال طلب السحب بنجاح");
-        currentUser.wallet_balance = newWallet;
-        document.getElementById('delWalletBalance').innerHTML = `${newWallet.toFixed(2)} <span class="text-xs font-normal">ر.س</span>`;
-        e.target.reset();
-        document.getElementById('withdrawDate').valueAsDate = new Date();
-        fetchDelegateLogs(currentUser.id);
-      } catch (err) {
-        console.error(err);
-        alert("حدث خطأ أثناء إرسال الطلب");
-      }
+      // نرسل طلب للإدارة فقط — ما نخصم شيء
+     const { error } = await supabaseClient.from('pending_requests').insert([{
+        request_type: 'سحب أموال',
+        manager_id: currentUser.id,
+        manager_name: currentUser.name,
+        delegate_id: currentUser.id,
+        amount: amount,
+        details_text: `طريقة السحب: ${method} — من المندوب: ${currentUser.name} — السبب: ${reason}${note ? ' | ملاحظة: ' + note : ''}`,
+        payload_json: { delegate_id: currentUser.id, amount: amount, method: method, reason: reason, note: note, details_text: `طريقة السحب: ${method}`, sender_name: currentUser.name },
+        status: 'pending'
+      }]);
+
+      if (error) { console.error('فشل إرسال طلب السحب:', error); return alert('فشل إرسال الطلب — حاول مرة أخرى'); }
+
+      alert('تم إرسال طلب السحب إلى الإدارة للمراجعة. سيتم خصم المبلغ بعد الاعتماد.');
+      e.target.reset();
     }
-
     async function logFinancialEvent(delegate_id, delegate_name, action_type, amount, details) {
       await supabaseClient.from('financial_logs').insert([{ delegate_id, delegate_name, action_type, amount, details }]);
     }
